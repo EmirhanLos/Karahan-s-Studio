@@ -1,0 +1,57 @@
+[
+  {
+    "id": "ziro-v3-1",
+    "projectId": "ziro",
+    "projectName": "Ziro OS Commander",
+    "version": "v3.1",
+    "title": "Gemini 1.5 Pro Entegrasyonu",
+    "description": "Bu güncellemeyle Ziro artık Gemini 1.5 Pro modelini destekliyor. Doğal dil komutları çok daha doğru yorumlanıyor, sohbet geçmişi yönetimi iyileştirildi ve yeni bir bağlam penceresi özelliği eklendi. Ayrıca Pardus desteği bu sürümle tam kararlılığa ulaştı.",
+    "image": "",
+    "date": "2026-08-10",
+    "dateDisplay": "10 Ağustos 2026"
+  },
+  {
+    "id": "pixel-siege-v1-0",
+    "projectId": "pixel-siege",
+    "projectName": "Pixel Siege",
+    "version": "v1.0",
+    "title": "İlk Kararlı Sürüm",
+    "description": "Pixel Siege resmi olarak v1.0 ile yayına girdi. Bu sürümde geliştirilmiş yapay zeka kale üretim algoritması, yeni harita tipleri, performans optimizasyonları ve mobil tarayıcı uyumluluğu yer alıyor. Bota karşı oynanan savaşlarda zorluk dengesi de yeniden ayarlandı.",
+    "image": "",
+    "date": "2026-08-02",
+    "dateDisplay": "2 Ağustos 2026"
+  },
+  {
+    "id": "jarvis-v2-v2-0",
+    "projectId": "jarvis-v2",
+    "projectName": "JARVIS v2.0",
+    "version": "v2.0",
+    "title": "Tamamen Yeniden Tasarlandı",
+    "description": "JARVIS v2.0, ilk sürümün ardından sıfırdan yeniden yazıldı. Python/Flask arka ucu ile modüler mimari, yeni Galeri ve Sistem Analizi panelleri, alarm tetiklemeli güvenli giriş ve misafir modu bu sürümle geldi. Veritabanı yönetimi artık arayüzden yapılabiliyor.",
+    "image": "",
+    "date": "2026-07-22",
+    "dateDisplay": "22 Temmuz 2026"
+  },
+  {
+    "id": "ai-debate-v1-2",
+    "projectId": "ai-debate-arena",
+    "projectName": "AI Debate Arena",
+    "version": "v1.2",
+    "title": "DeepSeek ve Kimi Kişilikleri Eklendi",
+    "description": "v1.2 güncellemesiyle tartışma arenasına DeepSeek ve Kimi kişilikleri katıldı. Artık 6 farklı yapay zeka modeli aynı anda arena'ya girebiliyor. Tur sayısı ayarı geliştirildi, tartışma çıktılarının TXT formatında dışa aktarılması iyileştirildi ve Türkçe çeviri kalitesi artırıldı.",
+    "image": "",
+    "date": "2026-07-10",
+    "dateDisplay": "10 Temmuz 2026"
+  },
+  {
+    "id": "desktop-launcher-v1-4",
+    "projectId": "desktop-launcher",
+    "projectName": "Desktop Launcher",
+    "version": "v1.4",
+    "title": "Otomatik Güncelleme Kontrolü",
+    "description": "Desktop Launcher v1.4 ile başlatıcıya otomatik güncelleme kontrolü eklendi. Yeni sürümler arka planda kontrol edilerek kullanıcıya bildirim gösteriliyor. Bunun yanı sıra kart sürükleme desteği, özelleştirilebilir sıralama ve macOS Sonoma uyumluluğu bu güncellemeyle geldi.",
+    "image": "",
+    "date": "2026-06-15",
+    "dateDisplay": "15 Haziran 2026"
+  }
+]

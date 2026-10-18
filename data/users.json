@@ -1,0 +1,52 @@
+[
+  {
+    "id": "1",
+    "email": "karahanemirhan86@gmail.com",
+    "password": "3m1rh4nl1",
+    "ip": "127.0.0.1",
+    "banned": false,
+    "isAdmin": true,
+    "createdAt": "2026-08-14T00:00:00.000Z",
+    "firstName": "Emirhan",
+    "lastName": "Karahan",
+    "phone": "+90 533 661 97 49",
+    "address": {
+      "line1": "Örnek Mahallesi, Yazılım Sokak No:1",
+      "city": "Ankara",
+      "zip": "",
+      "country": "Türkiye"
+    },
+    "card": {
+      "number": "**** **** **** 4242",
+      "holder": "Emirhan Karahan",
+      "expiry": "12/28",
+      "brand": "Visa"
+    },
+    "lastLoginAt": "2026-10-18T14:30:42.039Z",
+    "firebaseUid": "5qrtTXwDukYdx4yzhBDlVDfYNPu1"
+  },
+  {
+    "id": "2",
+    "email": "kullanici@ornek.com",
+    "password": "$2a$10$...",
+    "ip": "192.168.1.1",
+    "banned": false,
+    "isAdmin": false,
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "firstName": "Ali",
+    "lastName": "Yılmaz",
+    "phone": "+90 555 111 22 33",
+    "address": {
+      "line1": "Deneme Caddesi No:5",
+      "city": "Ankara",
+      "zip": "06000",
+      "country": "Türkiye"
+    },
+    "card": {
+      "number": "**** **** **** 1234",
+      "holder": "Ali Yılmaz",
+      "expiry": "09/27",
+      "brand": "Mastercard"
+    }
+  }
+]

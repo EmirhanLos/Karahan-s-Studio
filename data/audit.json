@@ -1,0 +1,512 @@
+[
+  {
+    "id": 51,
+    "at": "2026-10-18T14:30:42.057Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 50,
+    "at": "2026-10-18T14:30:42.031Z",
+    "type": "admin-2fa-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 49,
+    "at": "2026-10-18T14:29:45.766Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 48,
+    "at": "2026-10-18T14:28:03.614Z",
+    "type": "admin-login-bad",
+    "severity": "info",
+    "detail": "",
+    "actorId": null,
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 47,
+    "at": "2026-10-18T14:25:56.114Z",
+    "type": "admin-login-bad",
+    "severity": "info",
+    "detail": "",
+    "actorId": null,
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 46,
+    "at": "2026-10-18T14:25:25.640Z",
+    "type": "admin-login-invalid-input",
+    "severity": "info",
+    "detail": "",
+    "actorId": null,
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 45,
+    "at": "2026-10-18T14:23:49.625Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 44,
+    "at": "2026-10-18T14:23:49.596Z",
+    "type": "admin-2fa-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 43,
+    "at": "2026-10-18T14:23:40.320Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 42,
+    "at": "2026-10-18T14:23:34.874Z",
+    "type": "admin-logout",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 41,
+    "at": "2026-10-18T14:23:25.439Z",
+    "type": "login-ok",
+    "severity": "info",
+    "detail": "karahanemirhan86@gmail.com",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 40,
+    "at": "2026-10-18T14:01:34.939Z",
+    "type": "login-failed",
+    "severity": "info",
+    "detail": "karahanemirhan86gmail.com",
+    "actorId": null,
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 39,
+    "at": "2026-10-18T14:01:16.938Z",
+    "type": "login-failed",
+    "severity": "info",
+    "detail": "karahanemirhan86gmail.com",
+    "actorId": null,
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 38,
+    "at": "2026-10-18T14:00:45.245Z",
+    "type": "admin-login-bad",
+    "severity": "info",
+    "detail": "",
+    "actorId": null,
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 37,
+    "at": "2026-10-18T14:00:08.185Z",
+    "type": "admin-login-bad",
+    "severity": "info",
+    "detail": "",
+    "actorId": null,
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 36,
+    "at": "2026-10-18T13:59:48.507Z",
+    "type": "admin-login-bad",
+    "severity": "info",
+    "detail": "",
+    "actorId": null,
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 35,
+    "at": "2026-10-18T13:59:20.043Z",
+    "type": "admin-login-bad",
+    "severity": "info",
+    "detail": "",
+    "actorId": null,
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 34,
+    "at": "2026-10-18T13:57:31.274Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 33,
+    "at": "2026-10-18T13:57:31.252Z",
+    "type": "admin-2fa-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 32,
+    "at": "2026-10-18T13:57:22.706Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 31,
+    "at": "2026-10-18T13:57:13.834Z",
+    "type": "login-ok",
+    "severity": "info",
+    "detail": "karahanemirhan86@gmail.com",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 30,
+    "at": "2026-10-18T13:56:58.789Z",
+    "type": "admin-logout",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 29,
+    "at": "2026-10-18T13:38:44.054Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 28,
+    "at": "2026-10-18T13:38:44.025Z",
+    "type": "admin-2fa-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 27,
+    "at": "2026-10-18T13:38:35.201Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 26,
+    "at": "2026-10-18T13:38:14.251Z",
+    "type": "admin-logout",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 25,
+    "at": "2026-10-18T13:36:48.541Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 24,
+    "at": "2026-10-18T13:36:48.503Z",
+    "type": "admin-2fa-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 23,
+    "at": "2026-10-18T13:35:33.756Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 22,
+    "at": "2026-10-18T13:35:09.040Z",
+    "type": "admin-logout",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 21,
+    "at": "2026-10-18T13:16:06.113Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 20,
+    "at": "2026-10-18T13:16:06.087Z",
+    "type": "admin-2fa-enabled",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 19,
+    "at": "2026-10-18T13:14:12.953Z",
+    "type": "2fa-setup-failed",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 18,
+    "at": "2026-10-18T13:14:09.042Z",
+    "type": "2fa-setup-failed",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 17,
+    "at": "2026-10-18T13:13:46.123Z",
+    "type": "admin-2fa-setup-failed",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 16,
+    "at": "2026-10-18T13:13:23.712Z",
+    "type": "admin-2fa-setup-failed",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 15,
+    "at": "2026-10-18T13:13:18.579Z",
+    "type": "admin-2fa-setup-failed",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 14,
+    "at": "2026-10-18T13:13:09.938Z",
+    "type": "admin-2fa-setup-failed",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 13,
+    "at": "2026-10-18T13:12:47.448Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 12,
+    "at": "2026-10-18T12:43:10.382Z",
+    "type": "admin-login-not-authorized",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 11,
+    "at": "2026-10-18T12:39:50.214Z",
+    "type": "2fa-enabled",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 10,
+    "at": "2026-10-18T12:34:55.283Z",
+    "type": "admin-login-not-authorized",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 9,
+    "at": "2026-10-18T12:29:58.569Z",
+    "type": "admin-login-bad",
+    "severity": "info",
+    "detail": "",
+    "actorId": null,
+    "ip": "::ffff:127.0.0.1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": 8,
+    "at": "2026-10-18T12:23:20.336Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 7,
+    "at": "2026-10-18T12:23:08.062Z",
+    "type": "admin-logout",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 6,
+    "at": "2026-10-18T12:14:35.952Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 5,
+    "at": "2026-10-18T12:14:34.654Z",
+    "type": "admin-logout",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 4,
+    "at": "2026-10-18T11:54:29.083Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 3,
+    "at": "2026-10-18T11:54:16.923Z",
+    "type": "admin-logout",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 2,
+    "at": "2026-10-17T18:16:20.707Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "1",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 1,
+    "at": "2026-10-17T18:15:10.841Z",
+    "type": "admin-login-bad",
+    "severity": "info",
+    "detail": "admin@karahans.com",
+    "actorId": null,
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  }
+]

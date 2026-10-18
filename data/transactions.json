@@ -1,0 +1,16 @@
+[
+  {
+    "id": "1786740625780",
+    "type": "income",
+    "amount": 299.99,
+    "date": "2026-08-14T20:50:25.780Z",
+    "description": "Ziro AI Launcher Satışı - Deneme Hesabı"
+  },
+  {
+    "id": "1786740646771",
+    "type": "expense",
+    "amount": 200,
+    "date": "2026-08-14T20:50:46.771Z",
+    "description": "CPanel kirası ödendi"
+  }
+]
