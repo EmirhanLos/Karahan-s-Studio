@@ -1,5 +1,815 @@
 [
   {
+    "id": 132,
+    "at": "2026-10-31T23:22:04.036Z",
+    "type": "admin-message-read",
+    "severity": "info",
+    "detail": 1786744346454,
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 131,
+    "at": "2026-10-31T23:13:30.731Z",
+    "type": "admin-updates-create",
+    "severity": "info",
+    "detail": 3,
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 130,
+    "at": "2026-10-31T23:08:43.335Z",
+    "type": "admin-updates-create",
+    "severity": "info",
+    "detail": 2,
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 129,
+    "at": "2026-10-31T23:07:00.602Z",
+    "type": "admin-products-create",
+    "severity": "info",
+    "detail": 4,
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 128,
+    "at": "2026-10-31T23:05:58.925Z",
+    "type": "admin-products-delete",
+    "severity": "info",
+    "detail": "2",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 127,
+    "at": "2026-10-31T23:05:56.396Z",
+    "type": "admin-products-delete",
+    "severity": "info",
+    "detail": "1",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 126,
+    "at": "2026-10-31T22:52:25.667Z",
+    "type": "admin-message-delete",
+    "severity": "info",
+    "detail": "1786744346453",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 125,
+    "at": "2026-10-31T22:52:01.192Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 124,
+    "at": "2026-10-31T22:52:01.128Z",
+    "type": "admin-2fa-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 123,
+    "at": "2026-10-31T22:51:41.546Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 122,
+    "at": "2026-10-31T22:51:05.070Z",
+    "type": "contact-form",
+    "severity": "info",
+    "detail": "email=karahanemirhan86@gmail.com",
+    "actorId": null,
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 121,
+    "at": "2026-10-30T17:57:40.119Z",
+    "type": "admin-updates-update",
+    "severity": "info",
+    "detail": "1",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 120,
+    "at": "2026-10-30T17:57:14.246Z",
+    "type": "admin-updates-update",
+    "severity": "info",
+    "detail": "1",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 119,
+    "at": "2026-10-30T17:48:31.507Z",
+    "type": "admin-updates-create",
+    "severity": "info",
+    "detail": 1,
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 118,
+    "at": "2026-10-30T17:47:28.866Z",
+    "type": "admin-updates-delete",
+    "severity": "info",
+    "detail": "1",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 117,
+    "at": "2026-10-30T17:47:26.869Z",
+    "type": "admin-updates-delete",
+    "severity": "info",
+    "detail": "desktop-launcher-v1-4",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 116,
+    "at": "2026-10-30T17:47:25.462Z",
+    "type": "admin-updates-delete",
+    "severity": "info",
+    "detail": "ai-debate-v1-2",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 115,
+    "at": "2026-10-30T17:47:23.788Z",
+    "type": "admin-updates-delete",
+    "severity": "info",
+    "detail": "jarvis-v2-v2-0",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 114,
+    "at": "2026-10-30T17:47:22.242Z",
+    "type": "admin-updates-delete",
+    "severity": "info",
+    "detail": "pixel-siege-v1-0",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 113,
+    "at": "2026-10-30T17:47:20.425Z",
+    "type": "admin-updates-delete",
+    "severity": "info",
+    "detail": "ziro-v3-1",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 112,
+    "at": "2026-10-30T17:31:59.979Z",
+    "type": "admin-products-create",
+    "severity": "info",
+    "detail": 3,
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 111,
+    "at": "2026-10-30T17:28:38.527Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 110,
+    "at": "2026-10-30T17:28:38.457Z",
+    "type": "admin-2fa-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 109,
+    "at": "2026-10-30T17:28:19.233Z",
+    "type": "admin-2fa-failed",
+    "severity": "warn",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 108,
+    "at": "2026-10-30T17:28:09.336Z",
+    "type": "admin-2fa-failed",
+    "severity": "warn",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 107,
+    "at": "2026-10-30T17:27:47.090Z",
+    "type": "admin-2fa-failed",
+    "severity": "warn",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 106,
+    "at": "2026-10-30T17:27:15.054Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 105,
+    "at": "2026-10-19T02:01:38.282Z",
+    "type": "download",
+    "severity": "info",
+    "detail": "product=2",
+    "actorId": null,
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 104,
+    "at": "2026-10-19T02:01:29.123Z",
+    "type": "admin-products-update",
+    "severity": "info",
+    "detail": "2",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 103,
+    "at": "2026-10-19T02:00:59.680Z",
+    "type": "admin-products-update",
+    "severity": "info",
+    "detail": "2",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 102,
+    "at": "2026-10-19T02:00:57.779Z",
+    "type": "admin-product-upload",
+    "severity": "info",
+    "detail": "Åirket.png -> c75da05f1e2140e8.png",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 101,
+    "at": "2026-10-19T01:38:21.790Z",
+    "type": "admin-products-update",
+    "severity": "info",
+    "detail": "1",
+    "actorId": "admin:c8849e56-25e1-4e0a-9d1f-010bf2cfd25b",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 100,
+    "at": "2026-10-19T01:38:19.725Z",
+    "type": "download",
+    "severity": "info",
+    "detail": "product=1",
+    "actorId": null,
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 99,
+    "at": "2026-10-19T01:38:11.437Z",
+    "type": "admin-products-update",
+    "severity": "info",
+    "detail": "1",
+    "actorId": "admin:c8849e56-25e1-4e0a-9d1f-010bf2cfd25b",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 98,
+    "at": "2026-10-19T01:38:10.110Z",
+    "type": "admin-product-upload",
+    "severity": "info",
+    "detail": "test-urun-paketi.bin -> 3a0f94b13978f2c6.bin",
+    "actorId": "admin:c8849e56-25e1-4e0a-9d1f-010bf2cfd25b",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 97,
+    "at": "2026-10-19T01:37:53.791Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:c8849e56-25e1-4e0a-9d1f-010bf2cfd25b",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 96,
+    "at": "2026-10-19T01:37:53.057Z",
+    "type": "admin-2fa-enabled",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:c8849e56-25e1-4e0a-9d1f-010bf2cfd25b",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 95,
+    "at": "2026-10-19T01:37:32.137Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:c8849e56-25e1-4e0a-9d1f-010bf2cfd25b",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 94,
+    "at": "2026-10-19T01:36:01.640Z",
+    "type": "download",
+    "severity": "info",
+    "detail": "product=1",
+    "actorId": null,
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 93,
+    "at": "2026-10-19T01:35:58.815Z",
+    "type": "download",
+    "severity": "info",
+    "detail": "product=1",
+    "actorId": null,
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 92,
+    "at": "2026-10-19T01:35:51.523Z",
+    "type": "admin-products-update",
+    "severity": "info",
+    "detail": "1",
+    "actorId": "admin:8f6eb9bd-2194-43b0-8281-295e33923ff8",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 91,
+    "at": "2026-10-19T01:35:49.953Z",
+    "type": "admin-product-upload",
+    "severity": "info",
+    "detail": "test-urun-paketi.bin -> f106dced04fd8f27.bin",
+    "actorId": "admin:8f6eb9bd-2194-43b0-8281-295e33923ff8",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 90,
+    "at": "2026-10-19T01:35:33.668Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:8f6eb9bd-2194-43b0-8281-295e33923ff8",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 89,
+    "at": "2026-10-19T01:35:32.850Z",
+    "type": "admin-2fa-enabled",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:8f6eb9bd-2194-43b0-8281-295e33923ff8",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 88,
+    "at": "2026-10-19T01:35:12.959Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:8f6eb9bd-2194-43b0-8281-295e33923ff8",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 87,
+    "at": "2026-10-19T01:33:45.998Z",
+    "type": "download",
+    "severity": "info",
+    "detail": "product=1",
+    "actorId": null,
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 86,
+    "at": "2026-10-19T01:33:42.438Z",
+    "type": "download",
+    "severity": "info",
+    "detail": "product=1",
+    "actorId": null,
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 85,
+    "at": "2026-10-19T01:33:35.197Z",
+    "type": "admin-products-update",
+    "severity": "info",
+    "detail": "1",
+    "actorId": "admin:02b54c49-9d7c-450b-bf80-5e843678c1a5",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 84,
+    "at": "2026-10-19T01:33:32.784Z",
+    "type": "admin-product-upload",
+    "severity": "info",
+    "detail": "test-urun-paketi.bin -> e5bbc37f1a2f2432.bin",
+    "actorId": "admin:02b54c49-9d7c-450b-bf80-5e843678c1a5",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 83,
+    "at": "2026-10-19T01:33:16.572Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:02b54c49-9d7c-450b-bf80-5e843678c1a5",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 82,
+    "at": "2026-10-19T01:33:16.117Z",
+    "type": "admin-2fa-enabled",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:02b54c49-9d7c-450b-bf80-5e843678c1a5",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 81,
+    "at": "2026-10-19T01:32:50.233Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:02b54c49-9d7c-450b-bf80-5e843678c1a5",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 80,
+    "at": "2026-10-19T01:31:18.620Z",
+    "type": "download",
+    "severity": "info",
+    "detail": "product=1",
+    "actorId": null,
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 79,
+    "at": "2026-10-19T01:31:17.229Z",
+    "type": "download",
+    "severity": "info",
+    "detail": "product=1",
+    "actorId": null,
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 78,
+    "at": "2026-10-19T01:31:11.115Z",
+    "type": "admin-products-update",
+    "severity": "info",
+    "detail": "1",
+    "actorId": "admin:07e397ab-07f9-4204-a124-0c4a489f8ba5",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 77,
+    "at": "2026-10-19T01:31:08.534Z",
+    "type": "admin-product-upload",
+    "severity": "info",
+    "detail": "test-urun-paketi.bin -> c796069a48a417cf.bin",
+    "actorId": "admin:07e397ab-07f9-4204-a124-0c4a489f8ba5",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 76,
+    "at": "2026-10-19T01:30:53.449Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:07e397ab-07f9-4204-a124-0c4a489f8ba5",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 75,
+    "at": "2026-10-19T01:30:52.713Z",
+    "type": "admin-2fa-enabled",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:07e397ab-07f9-4204-a124-0c4a489f8ba5",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 74,
+    "at": "2026-10-19T01:30:29.149Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:07e397ab-07f9-4204-a124-0c4a489f8ba5",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 73,
+    "at": "2026-10-19T01:22:27.593Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:14c3f685-db00-4bf5-abdb-5604184d1c47",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 72,
+    "at": "2026-10-19T01:22:27.471Z",
+    "type": "admin-2fa-enabled",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:14c3f685-db00-4bf5-abdb-5604184d1c47",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 71,
+    "at": "2026-10-19T01:22:21.023Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:14c3f685-db00-4bf5-abdb-5604184d1c47",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 70,
+    "at": "2026-10-19T01:02:13.528Z",
+    "type": "admin-products-create",
+    "severity": "info",
+    "detail": 2,
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 69,
+    "at": "2026-10-19T00:59:55.309Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 68,
+    "at": "2026-10-19T00:59:55.275Z",
+    "type": "admin-2fa-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 67,
+    "at": "2026-10-19T00:59:30.499Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 66,
+    "at": "2026-10-19T00:11:29.555Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 65,
+    "at": "2026-10-19T00:11:29.531Z",
+    "type": "admin-2fa-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 64,
+    "at": "2026-10-19T00:11:29.488Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:21189334-34f2-4484-b2ac-2994dfe9ccfc",
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 63,
+    "at": "2026-10-19T00:07:29.162Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:f5f8cc9c-1d9d-4021-bfaf-d3d503bb0f72",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 62,
+    "at": "2026-10-19T00:07:29.059Z",
+    "type": "admin-2fa-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:f5f8cc9c-1d9d-4021-bfaf-d3d503bb0f72",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 61,
+    "at": "2026-10-19T00:07:20.312Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:f5f8cc9c-1d9d-4021-bfaf-d3d503bb0f72",
+    "ip": "::1",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+  },
+  {
+    "id": 60,
+    "at": "2026-10-18T19:40:56.410Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:f973a4af-2b17-46c5-99b6-b1c82fde6102",
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 59,
+    "at": "2026-10-18T19:40:56.386Z",
+    "type": "admin-2fa-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:f973a4af-2b17-46c5-99b6-b1c82fde6102",
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 58,
+    "at": "2026-10-18T19:40:56.354Z",
+    "type": "admin-2fa-failed",
+    "severity": "warn",
+    "detail": "",
+    "actorId": "admin:f973a4af-2b17-46c5-99b6-b1c82fde6102",
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 57,
+    "at": "2026-10-18T19:40:56.306Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:f973a4af-2b17-46c5-99b6-b1c82fde6102",
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 56,
+    "at": "2026-10-18T19:40:55.977Z",
+    "type": "admin-logout",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:f973a4af-2b17-46c5-99b6-b1c82fde6102",
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 55,
+    "at": "2026-10-18T19:40:55.826Z",
+    "type": "admin-login-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:f973a4af-2b17-46c5-99b6-b1c82fde6102",
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 54,
+    "at": "2026-10-18T19:40:55.789Z",
+    "type": "admin-2fa-enabled",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:f973a4af-2b17-46c5-99b6-b1c82fde6102",
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 53,
+    "at": "2026-10-18T19:40:55.728Z",
+    "type": "admin-login-password-ok",
+    "severity": "info",
+    "detail": "",
+    "actorId": "admin:f973a4af-2b17-46c5-99b6-b1c82fde6102",
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
+    "id": 52,
+    "at": "2026-10-18T19:40:55.634Z",
+    "type": "admin-login-bad",
+    "severity": "warn",
+    "detail": "smoketest",
+    "actorId": null,
+    "ip": "::1",
+    "ua": "node"
+  },
+  {
     "id": 51,
     "at": "2026-10-18T14:30:42.057Z",
     "type": "admin-login-ok",

@@ -12,6 +12,23 @@ function renderStars(rating = 0) {
     return '★'.repeat(full) + '☆'.repeat(empty);
 }
 
+function fileSize(bytes) {
+    const n = Number(bytes) || 0;
+    if (n <= 0) return '';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let v = n, i = 0;
+    while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+    return `${v.toFixed(i === 0 ? 0 : 1).replace('.', ',')} ${units[i]}`;
+}
+
+function getProductUpdates(product) {
+    return [
+        ...(product.updates || []),
+        ...data.updates().filter(update => String(update.productId) === String(product.id))
+    ].filter((update, index, all) => !update.id || all.findIndex(item => item.id && String(item.id) === String(update.id)) === index)
+        .sort((a, b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''));
+}
+
 function renderProduct(product) {
     if (!product) {
         return `
@@ -30,13 +47,15 @@ function renderProduct(product) {
 
     const isFree = finalPrice <= 0;
 
+    const fileRef = (product.file && typeof product.file === 'object' && product.file.stored)
+        ? product.file
+        : ((typeof product.file === 'string' && product.file) ? product.file : (product.deviceFile || null));
+    const notReleased = product.status === 'Yakında' || product.status === 'Geliştirmede';
+    const downloadable = !!fileRef && !notReleased;
+
     const gallery = (product.screenshots || []).slice(0, 4);
     const heroImage = gallery[0] || product.image;
-    const productUpdates = [
-        ...(product.updates || []),
-        ...data.updates().filter(update => String(update.productId) === String(product.id))
-    ].filter((update, index, all) => !update.id || all.findIndex(item => item.id && String(item.id) === String(update.id)) === index)
-        .sort((a, b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''));
+    const productUpdates = getProductUpdates(product);
 
     return `
     <article class="container" style="padding-top:var(--sp-6)">
@@ -50,11 +69,13 @@ function renderProduct(product) {
 
             <div class="product-cta">
                 ${isFree
-                    ? `<a class="btn btn-primary" href="/indir/${esc(product.id)}">Ücretsiz İndir</a>`
+                    ? (downloadable ? `<a class="btn btn-primary" href="/indir/${esc(product.id)}">İndir</a>` : '')
                     : `<a class="btn btn-primary" href="/satin-al/${esc(product.id)}">Satın Al · ${money(finalPrice)}</a>`}
+                ${!isFree && downloadable ? `<a class="btn btn-secondary" href="/indir/${esc(product.id)}">İndir</a>` : ''}
                 ${product.liveUrl ? `<a class="btn btn-secondary" href="${esc(product.liveUrl)}" target="_blank" rel="noopener">Canlı</a>` : ''}
                 <a class="btn btn-ghost" href="#features">Özellikler</a>
             </div>
+            ${downloadable ? `<p class="text-subtle text-sm" style="margin-top:var(--sp-3)">İndirilecek dosya: <strong>${esc(typeof fileRef === 'string' ? fileRef : (fileRef.name || 'ürün dosyası'))}</strong>${typeof fileRef === 'object' && fileRef.size ? ` · ${fileSize(fileRef.size)}` : ''}</p>` : ''}
             ${product.couponCode ? `<p class="text-subtle text-sm" style="margin-top:var(--sp-3)">İndirim kuponu: <strong>${esc(product.couponCode)}</strong>${product.couponDiscount ? ` · ek %${esc(product.couponDiscount)} indirim` : ''}</p>` : ''}
             ${product.description ? `<p class="product-description">${esc(product.description)}</p>` : ''}
         </header>
@@ -79,11 +100,19 @@ function renderProduct(product) {
         <section id="features" class="product-section" data-reveal>
             <h2 style="margin-bottom:var(--sp-5)">Özellikler</h2>
             <div class="feature-grid">
-                ${(product.features || []).map(f => `
+                ${(product.features || []).map(f => {
+                    // Düz metin ("Başlık | Açıklama" veya sadece "Başlık") ya da {title, description}
+                    const t = typeof f === 'string' ? f : (f.title || '');
+                    const d = typeof f === 'string' ? '' : (f.description || '');
+                    const parts = String(t).split('|');
+                    const title = (parts[0] || '').trim();
+                    const desc = (parts[1] || d || '').trim();
+                    return `
                     <article class="feature-item surface">
-                        <h4>${esc(f.title || '')}</h4>
-                        <p>${esc(f.description || '')}</p>
-                    </article>`).join('') || `
+                        <h4>${esc(title)}</h4>
+                        ${desc ? `<p>${esc(desc)}</p>` : ''}
+                    </article>`;
+                }).join('') || `
                     <p class="text-muted">Henüz özellik listesi eklenmedi.</p>`}
             </div>
         </section>
@@ -132,13 +161,13 @@ function renderProduct(product) {
                         </div>
                         <div class="update-card-body">
                             <div class="update-meta-top">
-                                <span class="badge badge--brand">v${esc(u.version || '')}</span>
+                                <span class="badge badge--brand">v${esc(String(u.version || '').replace(/^v/i, ''))}</span>
                                 <span class="update-date">${date(u.date || u.createdAt)}</span>
                             </div>
                             <h3 class="update-card-title">${esc(u.title || 'Güncelleme')}</h3>
                             <p class="update-card-desc">${esc(u.description || '')}</p>
                             <div class="update-card-foot">
-                                <a class="btn btn-ghost btn-sm" href="/guncellemeler">Tümü</a>
+                                <a class="btn btn-ghost btn-sm" href="/guncellemeler/${esc(product.id)}">Tümü</a>
                             </div>
                         </div>
                     </article>`).join('')}
@@ -147,4 +176,42 @@ function renderProduct(product) {
     </article>`;
 }
 
-module.exports = { renderProduct };
+function renderCheckout(product) {
+    const finalPrice = product.isFree ? 0
+        : product.discount > 0
+            ? product.price * (100 - product.discount) / 100
+            : product.price;
+
+    return `
+    <section class="container checkout-page" style="padding-top:var(--sp-6);max-width:760px">
+        <a class="text-link" href="/urun/${esc(product.id)}">← ${esc(product.name)} sayfasına dön</a>
+        <header class="page-header" style="padding-bottom:var(--sp-4)">
+            <p class="section-kicker">Sipariş özeti</p>
+            <h1>Satın alma</h1>
+            <p class="lead">${esc(product.name)} için ödeme bilgileri.</p>
+        </header>
+        <section class="surface" style="padding:clamp(20px,5vw,36px)" aria-labelledby="checkout-product">
+            <div class="row" style="justify-content:space-between;align-items:flex-start;gap:var(--sp-4)">
+                <div>
+                    <span class="badge badge--neutral">${esc(product.category || 'Ürün')}</span>
+                    <h2 id="checkout-product" style="margin-top:var(--sp-3)">${esc(product.name)}</h2>
+                    <p class="text-muted">${esc(product.summary || product.tagline || '')}</p>
+                </div>
+                <strong style="font-size:clamp(1.25rem,4vw,1.75rem);white-space:nowrap">${money(finalPrice)}</strong>
+            </div>
+            ${product.discount > 0 && !product.isFree
+                ? `<p class="text-subtle">Liste fiyatı: <s>${money(product.price)}</s> · %${esc(product.discount)} indirim uygulandı.</p>`
+                : ''}
+            <div class="callout" role="status" style="margin-top:var(--sp-4)">
+                <strong>Güvenli çevrimiçi ödeme henüz etkin değil.</strong>
+                <p style="margin:var(--sp-1) 0 0">Kart bilgilerinizi bu sitede paylaşmayın. Satın alma ve lisans seçenekleri için bizimle iletişime geçebilirsiniz.</p>
+            </div>
+            <div class="row" style="gap:var(--sp-3);margin-top:var(--sp-5)">
+                <a class="btn btn-primary" href="/iletisim">Satın alma için iletişime geç</a>
+                <a class="btn btn-ghost" href="/projeler">Projelere dön</a>
+            </div>
+        </section>
+    </section>`;
+}
+
+module.exports = { renderProduct, renderCheckout, getProductUpdates };

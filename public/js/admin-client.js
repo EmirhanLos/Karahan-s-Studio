@@ -28,6 +28,14 @@
         if (!iso) return '—';
         try { return new Date(iso).toLocaleString('tr-TR'); } catch { return '—'; }
     }
+    function fileSize(bytes) {
+        const n = Number(bytes) || 0;
+        if (n <= 0) return '';
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let v = n, i = 0;
+        while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+        return `${v.toFixed(i === 0 ? 0 : 1).replace('.', ',')} ${units[i]}`;
+    }
     function api(path, options = {}) {
         return fetch(path, {
             method: options.method || 'GET',
@@ -125,13 +133,14 @@
 
     function renderProductsTable(container, items) {
         container.innerHTML = table(
-            ['Ürün', 'Kategori', 'Durum', 'Fiyat / İndirim', 'Kupon', 'Tarih', 'İşlemler'],
+            ['Ürün', 'Kategori', 'Durum', 'Fiyat / İndirim', 'Kupon', 'Dosya', 'Tarih', 'İşlemler'],
             items.map(p => `<tr>
                 <td>${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" style="width:48px;height:36px;object-fit:cover;border-radius:8px;margin-right:8px;vertical-align:middle">` : ''}<strong>${esc(p.name)}</strong></td>
                 <td>${esc(p.category || '—')}</td>
                 <td><span class="badge badge--${p.status === 'Yayında' ? 'ok' : 'warn'}">${esc(p.status)}</span></td>
                 <td>${p.isFree || p.price <= 0 ? '<span class="badge badge--ok">Ücretsiz</span>' : `${money(p.price)}${p.discount ? ` <span class="badge badge--warn">-%${esc(p.discount)}</span>` : ''}`}</td>
                 <td>${p.couponCode ? `${esc(p.couponCode)}${p.couponDiscount ? ` (-%${esc(p.couponDiscount)})` : ''}` : '—'}</td>
+                <td>${p.file && p.file.stored ? `<span class="badge badge--ok" title="${esc(p.file.name || '')}">${esc((p.file.name || p.file.stored).length > 24 ? (p.file.name || p.file.stored).slice(0, 22) + '…' : (p.file.name || p.file.stored))}</span>` : '—'}</td>
                 <td>${esc(p.date || '—')}</td>
                 <td><div class="row" style="gap:var(--sp-2)">
                     <button class="btn btn-sm btn-secondary" data-edit="products" data-id="${esc(p.id)}">Düzenle</button>
@@ -302,6 +311,7 @@
 
     /* ── Form şablonları (modal için) ── */
     function productForm(p = {}) {
+        const file = (p.file && typeof p.file === 'object') ? p.file : null;
         return `<h2 style="margin-bottom:var(--sp-4)">${p.id ? 'Ürünü Düzenle' : 'Yeni Ürün'}</h2>
         <form class="auth-form" data-form="products" data-id="${esc(p.id || '')}">
             <div class="form-row">
@@ -331,6 +341,18 @@
                 <div class="form-group"><label class="form-label">Kupon indirimi (%)</label><input name="couponDiscount" type="number" min="0" max="100" class="form-input" value="${p.couponDiscount || 0}"></div>
             </div>
             <div class="form-group"><label class="form-label">Görsel URL</label><input name="image" class="form-input" value="${esc(p.image || '')}"></div>
+            <div class="form-group">
+                <label class="form-label">Ürün dosyası (cihazdan yükle)</label>
+                <div class="row" style="gap:var(--sp-2);flex-wrap:wrap">
+                    <input type="file" name="file" data-product-file class="form-input" style="flex:1;min-width:220px">
+                    <button type="button" class="btn btn-secondary" data-action="file-clear" ${file ? '' : 'hidden'}>Kaldır</button>
+                </div>
+                <input type="hidden" name="fileData" value="${file ? esc(JSON.stringify(file)) : ''}">
+                <p class="form-hint" data-file-status>${file
+                    ? `Yüklü dosya: ${esc(file.name || file.stored)}${file.size ? ` · ${fileSize(file.size)}` : ''}`
+                    : 'Yayınlanan ürünler bu dosyayı "İndir" düğmesiyle indirir. "Yakında"/"Geliştirmede" ürünler indirilemez.'}</p>
+            </div>
+            <div class="form-group"><label class="form-label">Özellikler (her satıra bir özellik · "Başlık | Açıklama" yazabilirsiniz)</label><textarea name="features" rows="4" placeholder="Hızlı temizlik | Tek tıkla tüm dosyaları siler&#10;Karanlık tema">${esc((p.features || []).join('\n'))}</textarea></div>
             <label class="row" style="gap:var(--sp-2);margin-bottom:var(--sp-4)">
                 <input name="isFree" type="checkbox" value="true" ${p.isFree ? 'checked' : ''}>
                 Ücretsiz yayınla
@@ -492,6 +514,18 @@
             try { await api('/admin/api/banned', { method: 'DELETE', body: { type: t.dataset.type, value: t.dataset.value } }); loadList('banned'); }
             catch (e) { alert(e.message); }
         }
+        if (t.dataset.action === 'file-clear') {
+            const form = t.closest('form[data-form="products"]');
+            if (form) {
+                const input = form.querySelector('input[type="file"][data-product-file]');
+                const hidden = form.querySelector('input[name="fileData"]');
+                const status = form.querySelector('[data-file-status]');
+                if (input) input.value = '';
+                if (hidden) hidden.value = '';
+                if (status) status.textContent = 'Dosya kaldırıldı — kaydederseniz ürün indirilemez olur.';
+                t.hidden = true;
+            }
+        }
         if (t.dataset.action === 'audit-refresh') loadList('audit');
     }
 
@@ -522,7 +556,11 @@
             body.discount = Number(body.discount) || 0;
             body.couponDiscount = Number(body.couponDiscount) || 0;
             body.isFree = fd.has('isFree');
+            body.features = String(body.features || '').split('\n').map(x => x.trim()).filter(Boolean);
             if (!body.summary) body.summary = body.description || '';
+            delete body.file;
+            try { body.file = body.fileData ? JSON.parse(body.fileData) : null; } catch (parseError) { body.file = null; }
+            delete body.fileData;
         }
         if (name === 'transactions') body.amount = Number(body.amount) || 0;
         if (name === 'upcoming') body.featured = body.featured === 'true';
@@ -534,7 +572,43 @@
         } catch (e) { alert(e.message); }
     }
 
+    async function uploadProductFile(input) {
+        const form = input.closest('form[data-form="products"]');
+        const file = input.files && input.files[0];
+        if (!form || !file) return;
+        const hidden = form.querySelector('input[name="fileData"]');
+        const status = form.querySelector('[data-file-status]');
+        const clearBtn = form.querySelector('[data-action="file-clear"]');
+        const submit = form.querySelector('button[type="submit"]');
+        if (!hidden) return;
+        if (submit) submit.disabled = true;
+        if (status) status.textContent = `Yükleniyor: ${file.name}…`;
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            const r = await fetch('/admin/api/products/upload', {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': cfg.csrf || '' },
+                body: fd,
+                credentials: 'same-origin'
+            });
+            const payload = await r.json().catch(() => null);
+            if (!r.ok || !payload || !payload.ok) throw new Error((payload && payload.error) || `Yükleme başarısız (HTTP ${r.status}).`);
+            hidden.value = JSON.stringify(payload.file);
+            if (status) status.textContent = `Yüklendi: ${payload.file.name}${payload.file.size ? ` · ${fileSize(payload.file.size)}` : ''}`;
+            if (clearBtn) clearBtn.hidden = false;
+        } catch (e) {
+            alert(e.message);
+            input.value = '';
+            if (status) status.textContent = 'Dosya yüklenemedi, yeniden deneyin.';
+        } finally {
+            if (submit) submit.disabled = false;
+        }
+    }
+
     async function onChange(e) {
+        const fileInput = e.target.closest('input[type="file"][data-product-file]');
+        if (fileInput) { uploadProductFile(fileInput); return; }
         const sel = e.target.closest('select[data-action="form-status"]');
         if (sel) {
             try { await api(`/admin/api/forms/${sel.dataset.id}/status`, { method: 'POST', body: { status: sel.value } }); }
@@ -542,11 +616,33 @@
         }
     }
 
+    /* ── Mikro-animasyon: istatistik sayaçlarında rAF ile sayım ──
+       Yalnızca görsel; tamsayı değerlerde çalışır, para biçimli
+       (₺, ondalık) değerleri ve reduced-motion tercihini atlar. */
+    function animateStatNumbers() {
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        document.querySelectorAll('.stat-number').forEach(el => {
+            const raw = el.textContent.trim();
+            if (!/^\d+$/.test(raw)) return;
+            const end = parseInt(raw, 10);
+            const start = performance.now();
+            const dur = 700;
+            function frame(now) {
+                const p = Math.min((now - start) / dur, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = String(Math.round(end * eased));
+                if (p < 1) requestAnimationFrame(frame);
+            }
+            requestAnimationFrame(frame);
+        });
+    }
+
     function init() {
         /* Kabuk + ilk görünüm sunucu tarafından hazırlanır.
            Burada yalnızca sekmeleri, modalı ve olayları bağlarız. */
         const initial = (location.hash || '#dashboard').slice(1);
         showView(initial);
+        animateStatNumbers();
         document.addEventListener('click', onClick);
         document.addEventListener('submit', onSubmit);
         document.addEventListener('change', onChange);

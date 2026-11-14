@@ -29,7 +29,6 @@ function requireAuth(req, res, next) {
 function loadUser(req) { return isAuthed(req) ? data.userById(req.session.userId) : null; }
 function loginAs(req, user) {
     req.session.userId = user.id;
-    req.session.isAdmin = !!user.isAdmin;
     req.session.email = user.email;
     req.session.authenticatedBy = 'firebase';
     req.session.createdAt = Date.now();
@@ -405,7 +404,13 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
     app.get('/profil', requireAuth, (req, res) => {
         const user = loadUser(req);
         const tfaOn = is2faEnabled(user.id);
-        const html = renderPage({ title: 'Profil', body: renderProfile({ user, csrf: getCsrf(req), tfaOn }), current: 'profil', user });
+        const email = String(user.email || '').trim().toLowerCase();
+        const messages = data.messages()
+            .filter(message => message.userId
+                ? String(message.userId) === String(user.id)
+                : String(message.email || '').trim().toLowerCase() === email)
+            .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        const html = renderPage({ title: 'Profil', body: renderProfile({ user, csrf: getCsrf(req), tfaOn, messages }), current: 'profil', user });
         res.type('html').send(html);
     });
 

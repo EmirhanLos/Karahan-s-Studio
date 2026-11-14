@@ -8,48 +8,48 @@
 const { renderPage } = require('./layout');
 const { renderHome, renderProjectCard } = require('./home');
 const { renderProjects } = require('./projects');
-const { renderProduct } = require('./product');
-const { renderAbout, renderUpdates, renderUpcoming, renderContact, renderCustomerForm, renderLegal, renderNotFound } = require('./misc');
+const { renderProduct, renderCheckout, getProductUpdates } = require('./product');
+const { renderAbout, renderUpdates, renderUpdateDetail, renderUpcoming, renderContact, renderCustomerForm, renderLegal, renderNotFound } = require('./misc');
 const data = require('../../data');
 const firestoreAdmin = require('../../core/firestore-admin');
 const audit = require('../../core/audit');
+const path = require('path');
 
 function send(res, status, html) { res.status(status).type('html').send(html); }
 
-function bannedHtml(reason = '') {
+function bannedHtml(req, reason = '') {
     const { renderBanned } = require('./misc');
-    return renderPage({ title: 'Erişim engellendi', body: renderBanned(reason) });
+    return renderPage({ title: 'Erişim engellendi', body: renderBanned(reason), user: req.user });
 }
 
 function viewProduct(req, id) {
     const p = data.projectById(id);
     const body = renderProduct(p);
-    return renderPage({ title: p?.name || 'Proje bulunamadı', body, current: 'projeler' });
+    return renderPage({ title: p?.name || 'Proje bulunamadı', body, current: 'projeler', user: req.user });
 }
 
-function viewContact(req, { error, success, values }) {
-    const { generateCsrf } = req.app.locals;
-    const csrf = req.session?.csrf;
+function viewContact(req, { error, success, values }, generateCsrf) {
+    const csrf = generateCsrf(req);
     const body = renderContact({ error, success, csrf, values: values || {} });
-    return renderPage({ title: 'İletişim', body, current: 'iletisim' });
+    return renderPage({ title: 'İletişim', body, current: 'iletisim', user: req.user });
 }
 
-function viewCustomerForm(req, projectId, { error, success, values } = {}) {
+function viewCustomerForm(req, projectId, { error, success, values } = {}, generateCsrf) {
     const project = projectId ? data.projectById(projectId) : null;
-    const csrf = req.session?.csrf;
+    const csrf = generateCsrf(req);
     const body = renderCustomerForm({ project, error, success, csrf, values: values || {} });
-    return renderPage({ title: 'Müşteri Formu', body, current: 'iletisim' });
+    return renderPage({ title: 'Müşteri Formu', body, current: 'iletisim', user: req.user });
 }
 
-module.exports = function (app) {
+module.exports = function (app, { generateCsrf, requireCsrf }) {
     /* ── Ana sayfa ── */
     app.get('/', (req, res) => {
-        send(res, 200, renderPage({ body: renderHome(), current: 'home' }));
+        send(res, 200, renderPage({ body: renderHome(), current: 'home', user: req.user }));
     });
 
     /* ── Projeler ── */
     app.get('/projeler', (req, res) => {
-        send(res, 200, renderPage({ body: renderProjects(), current: 'projeler' }));
+        send(res, 200, renderPage({ body: renderProjects(), current: 'projeler', user: req.user }));
     });
 
     /* ── Tek proje ── */
@@ -75,29 +75,77 @@ module.exports = function (app) {
         send(res, p ? 200 : 404, html);
     });
 
+    /* ── Satın alma bilgisi ── */
+    app.get('/satin-al/:id', (req, res) => {
+        const product = data.projectById(req.params.id);
+        if (!product || product.status === 'Yakında' || product.status === 'Geliştirmede') {
+            return send(res, 404, renderPage({
+                title: 'Ürün bulunamadı',
+                body: renderNotFound(),
+                current: '',
+                user: req.user
+            }));
+        }
+        if (product.isFree || Number(product.price) <= 0) {
+            return res.redirect(`/urun/${encodeURIComponent(product.id)}`);
+        }
+        send(res, 200, renderPage({
+            title: `Satın Al · ${product.name}`,
+            body: renderCheckout(product),
+            current: 'projeler',
+            user: req.user
+        }));
+    });
+
     /* ── Güncellemeler ── */
     app.get('/guncellemeler', (req, res) => {
-        send(res, 200, renderPage({ body: renderUpdates(), current: 'guncellemeler' }));
+        send(res, 200, renderPage({ body: renderUpdates(), current: 'guncellemeler', user: req.user }));
+    });
+    app.get('/guncellemeler/:productId', (req, res) => {
+        const product = data.projectById(req.params.productId);
+        if (!product) {
+            return send(res, 404, renderPage({ body: renderNotFound(), current: 'guncellemeler', user: req.user }));
+        }
+        send(res, 200, renderPage({
+            title: `${product.name} Güncellemeleri`,
+            body: renderUpdates(product),
+            current: 'guncellemeler',
+            user: req.user
+        }));
+    });
+    app.get('/guncellemeler/:productId/:updateId', (req, res) => {
+        const product = data.projectById(req.params.productId);
+        const update = product && getProductUpdates(product)
+            .find(item => String(item.id) === String(req.params.updateId));
+        if (!product || !update) {
+            return send(res, 404, renderPage({ body: renderNotFound(), current: 'guncellemeler', user: req.user }));
+        }
+        send(res, 200, renderPage({
+            title: update.title || 'Güncelleme',
+            body: renderUpdateDetail(update, product),
+            current: 'guncellemeler',
+            user: req.user
+        }));
     });
 
     /* ── Yakında ── */
     app.get('/yakinda', (req, res) => {
-        send(res, 200, renderPage({ body: renderUpcoming(), current: 'projeler' }));
+        send(res, 200, renderPage({ body: renderUpcoming(), current: 'projeler', user: req.user }));
     });
 
     /* ── Hakkında ── */
     app.get('/hakkinda', (req, res) => {
-        send(res, 200, renderPage({ body: renderAbout(), current: 'hakkinda' }));
+        send(res, 200, renderPage({ body: renderAbout(), current: 'hakkinda', user: req.user }));
     });
 
     /* ── İletişim ── */
     app.get('/iletisim', (req, res) => {
         const msg = req.session?.flash;
         delete req.session?.flash;
-        const html = viewContact(req, msg || {});
+        const html = viewContact(req, msg || {}, generateCsrf);
         send(res, 200, html);
     });
-    app.post('/iletisim', (req, res) => {
+    app.post('/iletisim', requireCsrf, (req, res) => {
         const { name, email, phone, subject, message, consent } = req.body || {};
         if (!name || !email || !subject || !message || !consent) {
             req.session.flash = { error: 'Lütfen tüm zorunlu alanları doldurun.', values: req.body };
@@ -110,6 +158,7 @@ module.exports = function (app) {
         try {
             data.saveMessage({
                 id: data.nextId(data.messages()),
+                ...(req.user?.id ? { userId: req.user.id } : {}),
                 name, email, phone, subject, message,
                 consent: true,
                 date: new Date().toISOString(),
@@ -127,14 +176,14 @@ module.exports = function (app) {
 
     /* ── Müşteri formu ── */
     app.get('/musteri-formu', (req, res) => {
-        const html = viewCustomerForm(req, null, {});
+        const html = viewCustomerForm(req, null, {}, generateCsrf);
         send(res, 200, html);
     });
     app.get('/musteri-formu/:projectId', (req, res) => {
-        const html = viewCustomerForm(req, req.params.projectId, {});
+        const html = viewCustomerForm(req, req.params.projectId, {}, generateCsrf);
         send(res, 200, html);
     });
-    app.post('/musteri-formu', (req, res) => {
+    app.post('/musteri-formu', requireCsrf, (req, res) => {
         const { firstName, lastName, email, phone, age, budget, projectGoal, additionalInfo, projectId, consent } = req.body || {};
         if (!firstName || !lastName || !email || !phone || !projectGoal || !consent) {
             req.session.flash = { error: 'Lütfen tüm zorunlu alanları doldurun.', values: req.body };
@@ -159,14 +208,25 @@ module.exports = function (app) {
         }
     });
 
-    /* ── İndirme (ücretsiz ürünler) ── */
+    /* ── İndirme (dosyalı ürünler) ── */
     app.get('/indir/:id', (req, res) => {
         const p = data.projectById(req.params.id);
-        if (!p || (!p.isFree && p.price > 0)) return res.status(404).send('Bulunamadı');
-        const file = p.deviceFile || p.file;
-        if (!file) return res.status(404).send('Dosya henüz eklenmemiş');
-        audit.log({ type: 'download', req, detail: `product=${p.id}` });
-        res.redirect(file);
+        if (!p) return res.status(404).send('Bulunamadı');
+        if (p.status === 'Yakında' || p.status === 'Geliştirmede') return res.status(404).send('Bu ürün henüz yayınlanmadı.');
+        const legacy = (typeof p.file === 'string' && p.file) ? p.file : p.deviceFile;
+        if (legacy) {
+            audit.log({ type: 'download', req, detail: `product=${p.id}` });
+            return res.redirect(legacy);
+        }
+        const f = (p.file && typeof p.file === 'object') ? p.file : null;
+        if (f && f.stored && /^[A-Za-z0-9._-]+$/.test(f.stored)) {
+            const full = path.join(__dirname, '..', '..', '..', 'data', 'uploads', 'products', path.basename(f.stored));
+            audit.log({ type: 'download', req, detail: `product=${p.id}` });
+            return res.download(full, f.name || f.stored, (err) => {
+                if (err && !res.headersSent) res.status(404).send('Dosya bulunamadı.');
+            });
+        }
+        return res.status(404).send('Bu ürün için henüz dosya eklenmedi.');
     });
 
     /* ── API: puanlama ── */
@@ -189,7 +249,7 @@ module.exports = function (app) {
     for (const [slug, key] of Object.entries(legalMap)) {
         app.get('/' + slug, (req, res) => {
             const { renderLegal } = require('./misc');
-            send(res, 200, renderPage({ title: key.toUpperCase(), body: renderLegal(key), current: '' }));
+            send(res, 200, renderPage({ title: key.toUpperCase(), body: renderLegal(key), current: '', user: req.user }));
         });
     }
 

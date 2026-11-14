@@ -1,70 +1,139 @@
 /* ═══════════════════════════════════════════════════════════════
-   data/store.js — Dosya tabanlı JSON depoları.
-   Tek tip API: read / write / update / append / remove.
-   Her mağaza aynı kalıba oturur; yeni kaynak eklemek 4 satır.
+   data/store.js — SQLite tabanlı JSON mağazaları.
+   Mevcut JSON dosyaları ilk açılışta SQLite'a aktarılır; API
+   alan modüller için değişmeden kalır.
    ═══════════════════════════════════════════════════════════════ */
 'use strict';
 
-const fs   = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
+const Database = require('better-sqlite3');
 
 const ROOT = path.join(__dirname, '..', '..', 'data');
+const IMPORT_MARKER = 'json-import-v1';
 
-function ensureDir() {
-    if (!fs.existsSync(ROOT)) fs.mkdirSync(ROOT, { recursive: true });
-}
+function createStore(root = ROOT) {
+    fs.mkdirSync(root, { recursive: true });
+    const db = new Database(path.join(root, 'database.sqlite'));
+    db.pragma('journal_mode = WAL');
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS store (
+            key TEXT PRIMARY KEY,
+            data TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS store_meta (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
+    `);
 
-function filePath(name) {
-    return path.join(ROOT, `${name}.json`);
-}
+    const getStatement = db.prepare('SELECT data FROM store WHERE key = ?');
+    const setStatement = db.prepare(`
+        INSERT INTO store (key, data) VALUES (?, ?)
+        ON CONFLICT(key) DO UPDATE SET data = excluded.data
+    `);
+    const hasImported = db.prepare('SELECT 1 FROM store_meta WHERE key = ?');
+    const markImported = db.prepare('INSERT INTO store_meta (key, value) VALUES (?, ?)');
 
-function read(name, fallback = []) {
-    ensureDir();
-    const p = filePath(name);
-    try {
-        if (!fs.existsSync(p)) {
-            fs.writeFileSync(p, JSON.stringify(fallback, null, 2), 'utf8');
-            return fallback;
+    function encode(name, data) {
+        const serialized = JSON.stringify(data);
+        if (serialized === undefined) {
+            throw new TypeError(`store.write("${name}") JSON olarak serileştirilemiyor.`);
         }
-        const raw = fs.readFileSync(p, 'utf8').trim();
-        if (!raw) return fallback;
-        return JSON.parse(raw);
-    } catch (e) {
-        console.error(`store.read("${name}") hatasi:`, e.message);
-        return fallback;
+        return serialized;
     }
-}
 
-function write(name, data) {
-    ensureDir();
-    const p = filePath(name);
-    const tmp = p + '.tmp';
-    fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
-    fs.renameSync(tmp, p);
-    return data;
-}
+    function decode(name, serialized) {
+        try {
+            return JSON.parse(serialized);
+        } catch (error) {
+            throw new Error(`store.read("${name}") geçersiz JSON: ${error.message}`, { cause: error });
+        }
+    }
 
-function findById(name, id) {
-    return read(name).find(item => String(item.id) === String(id)) || null;
-}
+    function importJsonFiles() {
+        const files = fs.readdirSync(root).filter(file => file.endsWith('.json'));
+        const importAll = db.transaction(() => {
+            if (hasImported.get(IMPORT_MARKER)) return;
+            for (const file of files) {
+                const name = path.basename(file, '.json');
+                if (!/^[a-z0-9_-]+$/i.test(name)) {
+                    throw new Error(`Geçersiz veri deposu dosya adı: ${file}`);
+                }
+                const content = fs.readFileSync(path.join(root, file), 'utf8');
+                let parsed;
+                try {
+                    parsed = JSON.parse(content);
+                } catch (error) {
+                    throw new Error(`"${file}" içe aktarılamadı; geçersiz JSON: ${error.message}`, { cause: error });
+                }
+                setStatement.run(name, encode(name, parsed));
+            }
+            markImported.run(IMPORT_MARKER, new Date().toISOString());
+        });
 
-function findBy(name, predicate) {
-    return read(name).filter(predicate);
-}
+        importAll();
+    }
 
-function upsert(name, item) {
-    const list = read(name);
-    const i = list.findIndex(x => String(x.id) === String(item.id));
-    if (i === -1) list.push({ ...item });
-    else list[i] = { ...list[i], ...item };
-    return write(name, list).find(x => x.id === item.id);
-}
+    try {
+        importJsonFiles();
+    } catch (error) {
+        db.close();
+        throw error;
+    }
 
-function remove(name, id) {
-    const list = read(name);
-    const next = list.filter(x => String(x.id) !== String(id));
-    write(name, next);
-    return next.length !== list.length;
+    function read(name, fallback = []) {
+        const row = getStatement.get(name);
+        if (row) return decode(name, row.data);
+        const serialized = encode(name, fallback);
+        db.prepare('INSERT OR IGNORE INTO store (key, data) VALUES (?, ?)').run(name, serialized);
+        return decode(name, getStatement.get(name).data);
+    }
+
+    function write(name, data) {
+        const serialized = encode(name, data);
+        setStatement.run(name, serialized);
+        return data;
+    }
+
+    function findById(name, id) {
+        return read(name).find(item => String(item.id) === String(id)) || null;
+    }
+
+    function findBy(name, predicate) {
+        return read(name).filter(predicate);
+    }
+
+    function upsert(name, item) {
+        return db.transaction(() => {
+            const list = read(name);
+            if (!Array.isArray(list)) {
+                throw new TypeError(`store.upsert("${name}") bir dizi depoda kullanılabilir.`);
+            }
+            const i = list.findIndex(x => String(x.id) === String(item.id));
+            if (i === -1) list.push({ ...item });
+            else list[i] = { ...list[i], ...item };
+            write(name, list);
+            return list.find(x => x.id === item.id);
+        })();
+    }
+
+    function remove(name, id) {
+        return db.transaction(() => {
+            const list = read(name);
+            if (!Array.isArray(list)) {
+                throw new TypeError(`store.remove("${name}") bir dizi depoda kullanılabilir.`);
+            }
+            const next = list.filter(x => String(x.id) !== String(id));
+            write(name, next);
+            return next.length !== list.length;
+        })();
+    }
+
+    return {
+        read, write, findById, findBy, upsert, remove, root,
+        close: () => { if (db.open) db.close(); }
+    };
 }
 
 function nextId(list) {
@@ -72,4 +141,19 @@ function nextId(list) {
     return Math.max(...list.map(x => Number(x.id) || 0)) + 1;
 }
 
-module.exports = { read, write, findById, findBy, upsert, remove, nextId, root: ROOT };
+let defaultStore;
+function getDefaultStore() {
+    if (!defaultStore) defaultStore = createStore();
+    return defaultStore;
+}
+
+const api = {};
+for (const method of ['read', 'write', 'findById', 'findBy', 'upsert', 'remove']) {
+    api[method] = (...args) => getDefaultStore()[method](...args);
+}
+api.close = () => defaultStore?.close();
+api.nextId = nextId;
+api.root = ROOT;
+api.createStore = createStore;
+
+module.exports = api;

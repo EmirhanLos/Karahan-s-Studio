@@ -40,9 +40,18 @@ const ICONS = {
     pin:  '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'
 };
 
-function navItem(href, label, active, current) {
+const NAV_ICONS = {
+    home: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+    projects: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5m8-5v5"/></svg>',
+    updates: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.6-2L20 12M4 12l2.8 5a7 7 0 0 0 11.6-2"/></svg>',
+    studio: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 4.3 1.7c-1.1 1-1.9 1.3-1.9 3.3M12 17.5v.1"/></svg>',
+    profile: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>',
+    login: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>'
+};
+
+function navItem(href, label, active, current, icon) {
     const cls = `nav-link${active === current ? ' is-active' : ''}`;
-    return `<li><a href="${esc(url(href))}" class="${cls}">${esc(label)}</a></li>`;
+    return `<li><a href="${esc(url(href))}" class="${cls}">${NAV_ICONS[icon]}<span class="nav-tab-label">${esc(label)}</span></a></li>`;
 }
 
 function projectsDropdown() {
@@ -54,51 +63,34 @@ function projectsDropdown() {
 }
 
 function renderHeader(current = '', user = null) {
-    const isAdmin = user?.isAdmin;
-    const initials = user
-        ? (user.firstName || 'K').charAt(0).toUpperCase() + (user.lastName || '').charAt(0).toUpperCase()
-        : 'K';
-    const avatarImg = user?.avatar
-        ? `<img src="${esc(user.avatar)}" alt="" loading="lazy">`
-        : initials;
-
     return `
     <header class="navbar" role="banner">
         <a class="logo" href="/" aria-label="${esc(SITE.shortName)} anasayfa">
             <span class="logo-mark">K</span><span class="logo-name">karahan<span>’s</span></span>
         </a>
-        <button type="button" class="nav-toggle" id="navToggle" aria-label="Menüyü aç" aria-expanded="false">${ICONS.menu}</button>
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="Menüyü aç" aria-expanded="false" aria-controls="navList">${ICONS.menu}</button>
         <nav class="nav-links" id="navList" aria-label="Birincil gezinme">
-            <ul style="display:contents;list-style:none;margin:0;padding:0">
-                ${navItem('/', 'Ana sayfa', current, 'home')}
+            <svg class="nav-lens-filter" aria-hidden="true" focusable="false">
+                <filter id="nav-lens-refraction" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" x="0" y="0" width="104" height="62" color-interpolation-filters="sRGB">
+                    <feImage class="nav-lens-map" x="0" y="0" width="104" height="62" preserveAspectRatio="none" result="map"/>
+                    <feDisplacementMap in="SourceGraphic" in2="map" scale="32" xChannelSelector="R" yChannelSelector="G"/>
+                </filter>
+            </svg>
+            <span class="nav-lens" aria-hidden="true"></span>
+            <ul class="nav-links-inner" style="display:contents;list-style:none;margin:0;padding:0">
+                ${navItem('/', 'Ana sayfa', current, 'home', 'home')}
                 <li class="dropdown">
-                    <a href="/projeler" class="nav-link${current === 'projeler' ? ' is-active' : ''}">Projeler</a>
-                    <ul class="dropdown-content" id="projectsDropdown">${projectsDropdown()}</ul>
+                    <a href="/projeler" class="nav-link${current === 'projeler' ? ' is-active' : ''}" aria-expanded="false" aria-controls="projectsDropdown">${NAV_ICONS.projects}<span class="nav-tab-label">Projeler</span></a>
+                    <ul class="dropdown-content" id="projectsDropdown" style="list-style:none;margin:0;padding:0">${projectsDropdown()}</ul>
                 </li>
-                ${navItem('/guncellemeler', 'Güncellemeler', current, 'guncellemeler')}
-                ${navItem('/hakkinda', 'Stüdyo', current, 'hakkinda')}
-            </ul>
-            <li class="theme-wrap">
-                <button type="button" class="theme-btn" id="themeBtn" aria-label="Tema değiştir" aria-expanded="false">${ICONS.sun}</button>
-                <div class="theme-menu" id="themeMenu" role="menu">
-                    <button type="button" class="theme-option" data-theme="dark" role="menuitem">${ICONS.moon}<span>Siyah</span></button>
-                    <button type="button" class="theme-option" data-theme="light" role="menuitem">${ICONS.sun}<span>Beyaz</span></button>
-                    <button type="button" class="theme-option" data-theme="system" role="menuitem">${ICONS.sys}<span>Cihaz</span></button>
-                </div>
-            </li>
+                ${navItem('/guncellemeler', 'Güncellemeler', current, 'guncellemeler', 'updates')}
+                ${navItem('/hakkinda', 'Stüdyo', current, 'hakkinda', 'studio')}
             ${user ? `
-            <li class="user-menu">
-                <a href="/profil" class="avatar-link" aria-label="Profil">${avatarImg.startsWith('<img') ? `<div class="avatar">${avatarImg}</div>` : `<div class="avatar">${initials}</div>`}</a>
-                <ul class="user-menu-list" role="menu">
-                    <li><a href="/profil" class="user-menu-item" role="menuitem">Profil</a></li>
-                    <li><a href="/profil/duzenle" class="user-menu-item" role="menuitem">Düzenle</a></li>
-                    ${isAdmin ? '<li><a href="/admin" class="user-menu-item" role="menuitem">Yönetim</a></li>' : ''}
-                    <li><a href="/cikis" class="user-menu-item user-menu-item--danger" role="menuitem">Çıkış</a></li>
-                </ul>
-            </li>
+            <li><a href="/profil" class="nav-link nav-profile${current === 'profil' ? ' is-active' : ''}">${NAV_ICONS.profile}<span class="nav-tab-label">Profil</span></a></li>
             ` : `
-            <li><a href="/giris" class="nav-link nav-login">Giriş</a></li>
+            <li><a href="/giris" class="nav-link nav-login">${NAV_ICONS.login}<span class="nav-tab-label">Giriş Yap</span></a></li>
             `}
+            </ul>
         </nav>
     </header>`;
 }
@@ -159,27 +151,11 @@ function renderFooter() {
     </footer>`;
 }
 
-function preThemeScript() {
-    /* Tema, stil sayfası yüklenmeden ÖNCE uygulanmalı (FOUC önleme) */
-    return `<script>
-(function(){
-    try {
-        var s = localStorage.getItem('ks-theme') || 'light';
-        var r = s === 'system' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : s;
-        document.documentElement.setAttribute('data-theme', r);
-    } catch (e) {
-        document.documentElement.setAttribute('data-theme', 'light');
-    }
-    document.documentElement.classList.remove('no-js');
-})();
-</script>`;
-}
-
 function clientScripts() {
     return `
-    <script src="${esc(asset('/js/theme.js'))}" defer></script>
     <script src="${esc(asset('/js/nav.js'))}" defer></script>
     <script src="${esc(asset('/js/reveal.js'))}" defer></script>
+    <script src="${esc(asset('/js/motion.js'))}" defer></script>
     <script src="${esc(asset('/js/main.js'))}" defer></script>`;
 }
 
@@ -187,13 +163,14 @@ function renderPage({ title, description, body, current = '', user = null, og = 
     const desc = description || SITE.description;
     const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
     return `<!doctype html>
-<html lang="tr" class="no-js" data-theme="light">
+<html lang="tr" class="no-js" data-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="color-scheme" content="light dark">
-    <meta name="theme-color" content="#f4f1e8" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#111711" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#020203">
     <meta name="description" content="${esc(desc)}">
     <title>${esc(fullTitle)}</title>
     <meta property="og:title" content="${esc(fullTitle)}">
@@ -204,12 +181,17 @@ function renderPage({ title, description, body, current = '', user = null, og = 
     <link rel="icon" type="image/svg+xml" href="${esc(asset('/assets/favicon.svg'))}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap">
-    <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="${esc(asset('/css/style.css'))}">
-    ${preThemeScript()}
+    <link rel="stylesheet" href="${esc(asset('/css/liquid-glass.css'))}">
+    <link rel="stylesheet" href="${esc(asset('/css/nav-lens.css'))}">
+    <link rel="stylesheet" href="${esc(asset('/css/mobile.css'))}">
+    <script>document.documentElement.classList.remove('no-js');</script>
 </head>
 <body class="site-shell">
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="page-transition" aria-hidden="true"></div>
     <a class="skip-link" href="#main">İçeriğe atla</a>
     ${renderHeader(current, user)}
     <main id="main" tabindex="-1">

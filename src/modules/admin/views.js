@@ -5,48 +5,44 @@
    ═══════════════════════════════════════════════════════════════ */
 'use strict';
 
-const { esc } = require('../../core/views');
+const { esc, json } = require('../../core/views');
 const { SITE } = require('../public/layout');
 const { asset } = require('../public/assets');
 
 const ICONS = {
-    sun:  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>',
-    moon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
-    sys:  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
     shield: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
     key:  '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.85 12.15L19 4M18 5l3 3M15 8l3 3"/></svg>',
     log:  '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>'
 };
 
-function renderAdminGate({ csrf = '', error = null, notice = null, twoFactorOn = false } = {}) {
+const EYE = `<svg class="icon-eye" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+<svg class="icon-eye-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l18 18M10.6 10.7a3 3 0 004.2 4.2"/><path d="M9.4 5.2A9.8 9.8 0 0112 5c6.5 0 10.5 7 10.5 7a17 17 0 01-2.4 3.2M6.6 6.6A17 17 0 001.5 12S5.5 19 12 19c1 0 2-.2 2.9-.5"/></svg>`;
+
+function renderAdminGate({ csrf = '', error = null, paths } = {}) {
     return `
     <main class="auth-shell">
         <div class="auth-card" data-reveal>
             <div class="auth-head">
                 <span class="auth-logo">${SITE.shortName}</span>
-                <span class="auth-badge">Yönetici</span>
+                <span class="auth-badge">Yönetici · Adım 1 / 2</span>
             </div>
             <h1>Yönetim Girişi</h1>
-            <p class="auth-sub">Bu alan yalnızca yetkili hesaplar içindir.</p>
+            <p class="auth-sub">Bu alan yalnızca yetkili yönetici hesapları içindir.</p>
             ${error ? `<div class="alert alert--bad" role="alert">${esc(error)}</div>` : ''}
-            ${notice ? `<div class="alert alert--ok" role="alert">${esc(notice)}</div>` : ''}
-            <form method="POST" action="/admin/login" class="auth-form" novalidate>
+            <form method="POST" action="${esc(paths.login)}" class="auth-form" novalidate>
                 <input type="hidden" name="_csrf" value="${esc(csrf)}">
                 <div class="form-group">
-                    <label class="form-label" for="email">E-posta</label>
-                    <input id="email" name="email" type="email" required class="form-input" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+                    <label class="form-label" for="username">Kullanıcı adı</label>
+                    <input id="username" name="username" type="text" required class="form-input" autocomplete="username" autocapitalize="none" spellcheck="false" autofocus>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="password">Parola</label>
                     <div class="password-wrap">
-                        <input id="password" name="password" type="password" required class="form-input" autocomplete="current-password" required>
-                        <button type="button" class="password-toggle" data-pw-toggle="password" aria-label="Parolayı göster">
-                            <svg class="icon-eye" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
-                            <svg class="icon-eye-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l18 18M10.6 10.7a3 3 0 004.2 4.2"/><path d="M9.4 5.2A9.8 9.8 0 0112 5c6.5 0 10.5 7 10.5 7a17 17 0 01-2.4 3.2M6.6 6.6A17 17 0 001.5 12S5.5 19 12 19c1 0 2-.2 2.9-.5"/></svg>
-                        </button>
+                        <input id="password" name="password" type="password" required class="form-input" autocomplete="current-password">
+                        <button type="button" class="password-toggle" data-pw-toggle="password" aria-label="Parolayı göster">${EYE}</button>
                     </div>
                 </div>
-                <button class="btn btn-primary" type="submit">Giriş Yap</button>
+                <button class="btn btn-primary" type="submit">Devam et</button>
             </form>
             <div class="auth-foot">
                 <a href="/">← Siteye dön</a>
@@ -55,7 +51,7 @@ function renderAdminGate({ csrf = '', error = null, notice = null, twoFactorOn =
     </main>`;
 }
 
-function renderAdmin2FAGate({ email, error = null, mode = 'totp', remaining = 30, csrf = '' } = {}) {
+function renderAdmin2FAGate({ username, error = null, mode = 'totp', remaining = 30, csrf = '', paths } = {}) {
     const isRecovery = mode === 'recovery';
     return `
     <main class="auth-shell">
@@ -63,80 +59,55 @@ function renderAdmin2FAGate({ email, error = null, mode = 'totp', remaining = 30
             <div class="steps"><span class="step-dot is-done"></span><span class="step-dot is-done"></span></div>
             <span class="auth-badge">Yönetici · Adım 2 / 2</span>
             <h1>Doğrulama</h1>
-            <p class="auth-sub"><strong>${esc(email)}</strong> için ${isRecovery ? 'kurtarma kodunuzu girin.' : 'uygulamadaki 6 haneli kodu girin.'}</p>
+            <p class="auth-sub"><strong>${esc(username)}</strong> için ${isRecovery ? 'kurtarma kodunuzu girin.' : 'Authenticator uygulamasındaki 6 haneli kodu girin.'}</p>
             ${error ? `<div class="alert alert--bad" role="alert">${esc(error)}</div>` : ''}
-            <form method="POST" action="/admin/2fa" class="auth-form" novalidate>
+            <form method="POST" action="${esc(paths.verify)}" class="auth-form" novalidate data-twofa-form>
                 <input type="hidden" name="_csrf" value="${esc(csrf)}">
                 ${isRecovery ? `
                 <div class="form-group">
                     <label class="form-label" for="recovery">Kurtarma kodu</label>
-                    <input id="recovery" name="recovery" type="text" required class="form-input otp-input" placeholder="XXXXX-XXXXX" maxlength="11">
+                    <input id="recovery" name="recovery" type="text" required class="form-input otp-input" placeholder="XXXXX-XXXXX" maxlength="11" autofocus>
                 </div>
                 ` : `
                 <div class="form-group">
                     <label class="form-label" for="token">6 haneli kod</label>
-                    <input id="token" name="token" type="text" inputmode="numeric" maxlength="6" pattern="[0-9]*" required class="form-input otp-input" placeholder="000000" autofocus>
+                    <input id="token" name="token" type="text" inputmode="numeric" maxlength="6" pattern="[0-9]*" required class="form-input otp-input" placeholder="000000" autocomplete="one-time-code" autofocus>
                     <p class="form-hint" data-twofa-timer>Kod ${esc(remaining)} saniye sonra yenilenir.</p>
                 </div>
                 `}
                 <button class="btn btn-primary" type="submit">Doğrula</button>
             </form>
             <div class="auth-foot">
-                ${isRecovery ? '<a href="/admin/2fa">← Kod ile devam et</a>' : '<a href="/admin/2fa?mode=recovery">Kurtarma kodu kullan</a>'}
+                ${isRecovery ? `<a href="${esc(paths.verify)}">← Kod ile devam et</a>` : `<a href="${esc(paths.verify)}?mode=recovery">Kurtarma kodu kullan</a>`}
+                <a href="${esc(paths.logout)}">İptal et</a>
             </div>
         </div>
     </main>`;
 }
 
-function renderAdminEmailOtpGate({ email, error = null, csrf = '' } = {}) {
+function renderAdminSetupGate({ username, secret, uri, error = null, csrf = '', paths } = {}) {
     return `
     <main class="auth-shell">
-        <div class="auth-card" data-reveal>
-            <div class="steps"><span class="step-dot is-done"></span><span class="step-dot is-done"></span></div>
-            <span class="auth-badge">Yönetici · Adım 2 / 2</span>
-            <h1>E-posta doğrulaması</h1>
-            <p class="auth-sub"><strong>${esc(email)}</strong> adresine gönderilen 6 haneli kodu girin. Kod 10 dakika geçerlidir.</p>
-            ${error ? `<div class="alert alert--bad" role="alert">${esc(error)}</div>` : ''}
-            <form method="POST" action="/admin/2fa" class="auth-form" novalidate>
-                <input type="hidden" name="_csrf" value="${esc(csrf)}">
-                <div class="form-group">
-                    <label class="form-label" for="token">6 haneli kod</label>
-                    <input id="token" name="token" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required class="form-input otp-input" placeholder="000000" autofocus>
-                </div>
-                <button class="btn btn-primary" type="submit">Doğrula</button>
-            </form>
-            <form method="POST" action="/admin/2fa/resend" class="auth-form">
-                <input type="hidden" name="_csrf" value="${esc(csrf)}">
-                <button class="btn btn-secondary" type="submit">Yeni kod gönder</button>
-            </form>
-            <div class="auth-foot"><a href="/admin/logout">İptal et ve çıkış yap</a></div>
-        </div>
-    </main>`;
-}
-
-function renderAdminSetupGate({ email, secret, uri, error = null, csrf = '', action = '/admin/2fa/enroll' } = {}) {
-    return `
-    <main class="auth-shell">
-        <div class="auth-card" data-reveal>
+        <div class="auth-card auth-card--wide" data-reveal>
             <div class="steps"><span class="step-dot is-done"></span><span class="step-dot is-done"></span></div>
             <span class="auth-badge">Yönetici · Güvenlik kurulumu</span>
             <h1>Authenticator kurulumu</h1>
-            <p class="auth-sub">${esc(email)} hesabında yönetim panelini kullanmadan önce Authenticator doğrulaması etkinleştirilmelidir.</p>
+            <p class="auth-sub"><strong>${esc(username)}</strong> hesabı panele girmeden önce iki adımlı doğrulamayı etkinleştirmelidir.</p>
             ${error ? `<div class="alert alert--bad" role="alert">${esc(error)}</div>` : ''}
-            <ol class="auth-sub">
-                <li>Authenticator uygulamasında bu hesabı ekleyin. <a href="${esc(uri)}">Uygulamada aç</a></li>
-                <li>Uygulama desteklemiyorsa bu gizli anahtarı elle girin:</li>
+            <ol class="step-list">
+                <li class="step-item"><span class="step-num">1</span><span>Authenticator uygulamanızda (Google Authenticator, Authy, 1Password…) yeni hesap ekleyin. <a href="${esc(uri)}" data-otpauth>Uygulamada aç</a></span></li>
+                <li class="step-item"><span class="step-num">2</span><span>Uygulama bağlantıyı desteklemiyorsa gizli anahtarı elle girin:</span></li>
             </ol>
-            <p><code>${esc(secret)}</code></p>
-            <form method="POST" action="${esc(action)}" class="auth-form">
+            <div class="secret-display"><code>${esc(secret)}</code><button type="button" class="btn btn-ghost btn-sm" data-copy-target="secret" data-copy="${esc(secret)}">Kopyala</button></div>
+            <form method="POST" action="${esc(paths.enroll)}" class="auth-form" data-twofa-form>
                 <input type="hidden" name="_csrf" value="${esc(csrf)}">
                 <div class="form-group">
-                    <label class="form-label" for="setup-token">Authenticator kodu</label>
+                    <label class="form-label" for="setup-token">Uygulamadaki 6 haneli kod</label>
                     <input id="setup-token" name="token" type="text" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required class="form-input otp-input" autocomplete="one-time-code" placeholder="000000">
                 </div>
                 <button class="btn btn-primary" type="submit">Kurulumu doğrula</button>
             </form>
-            <div class="auth-foot"><a href="/admin/logout">İptal et ve çıkış yap</a></div>
+            <div class="auth-foot"><a href="${esc(paths.logout)}">İptal et ve çıkış yap</a></div>
         </div>
     </main>`;
 }
@@ -144,48 +115,76 @@ function renderAdminSetupGate({ email, secret, uri, error = null, csrf = '', act
 function renderAdminSetupComplete({ recoveryCodes = [] } = {}) {
     return `
     <main class="auth-shell">
-        <div class="auth-card" data-reveal>
-            <span class="auth-badge">Yönetici · Kurulum tamamlandı</span>
+        <div class="auth-card auth-card--wide" data-reveal>
+            <span class="auth-badge">Yönetici · Kurtarma kodları</span>
             <h1>Kurtarma kodlarınız</h1>
-            <p class="auth-sub">Bu kodlar yalnızca şimdi gösterilir. Güvenli bir yerde saklayın; her biri bir kez kullanılabilir.</p>
+            <p class="auth-sub">Bu kodlar yalnızca şimdi gösterilir. Güvenli bir yerde saklayın; her biri bir kez kullanılabilir ve Authenticator'a erişemediğinizde giriş sağlar.</p>
             <ul class="recovery-codes">${recoveryCodes.map(code => `<li><code>${esc(code)}</code></li>`).join('')}</ul>
-            <a class="btn btn-primary" href="/admin">Yönetim paneline devam et</a>
+            <div class="hero-actions">
+                <button type="button" class="btn btn-secondary" data-copy-codes>Kodları kopyala</button>
+                <a class="btn btn-primary" href="/admin">Yönetim paneline devam et</a>
+            </div>
         </div>
     </main>`;
 }
 
-/* ── Yönetim paneli kabuğu (SPA host) ── */
-function renderAdminShell({ user, csrf = '', themeBtn = '' } = {}) {
+/* ── Giriş/2FA sayfaları için bağımsız kabuk ── */
+function renderAdminAuth({ title, body }) {
     return `<!doctype html>
-<html lang="tr" class="no-js" data-theme="light">
+<html lang="tr" class="no-js" data-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="color-scheme" content="light dark">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#020203">
+    <meta name="robots" content="noindex, nofollow">
+    <title>${esc(title)} | ${esc(SITE.name)}</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="${esc(asset('/css/style.css'))}">
+    <link rel="stylesheet" href="${esc(asset('/css/admin.css'))}">
+    <link rel="stylesheet" href="${esc(asset('/css/liquid-glass.css'))}">
+    <link rel="stylesheet" href="${esc(asset('/css/mobile.css'))}">
+    <script>document.documentElement.classList.remove('no-js');</script>
+</head>
+<body class="admin-body admin-auth-body">
+    ${body}
+    <script src="${esc(asset('/js/admin-2fa.js'))}" defer></script>
+</body>
+</html>`;
+}
+
+/* ── Yönetim paneli kabuğu (SPA host) ── */
+function renderAdminShell({ admin, csrf = '', content = '' } = {}) {
+    return `<!doctype html>
+<html lang="tr" class="no-js" data-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#020203">
     <title>Yönetim Paneli | ${esc(SITE.name)}</title>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap">
-    <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="${esc(asset('/css/style.css'))}">
     <link rel="stylesheet" href="${esc(asset('/css/admin.css'))}">
-    <script>
-    (function(){
-        try {
-            var s = localStorage.getItem('ks-theme') || 'light';
-            var r = s === 'system' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : s;
-            document.documentElement.setAttribute('data-theme', r);
-        } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
-        document.documentElement.classList.remove('no-js');
-    })();
-    </script>
-    <script>window.KS_ADMIN = { csrf: ${esc(JSON.stringify(csrf))}, user: ${esc(JSON.stringify({ email: user?.email, isAdmin: !!user?.isAdmin }))} };</script>
+    <link rel="stylesheet" href="${esc(asset('/css/liquid-glass.css'))}">
+    <link rel="stylesheet" href="${esc(asset('/css/mobile.css'))}">
+    <script>document.documentElement.classList.remove('no-js');</script>
+    <script>window.KS_ADMIN = ${json({ csrf, user: { username: admin?.username, email: admin?.email || '', isAdmin: true } })};</script>
 </head>
 <body class="admin-body site-shell">
     <a class="skip-link" href="#main">İçeriğe atla</a>
-    <div id="admin-root" data-view="dashboard"></div>
-    <script src="/js/theme.js" defer></script>
+    <div id="admin-root" data-view="dashboard">${content}</div>
     <script src="${esc(asset('/js/admin-client.js'))}" defer></script>
 </body>
 </html>`;
@@ -201,7 +200,7 @@ function renderAdminDashboardHTML({ stats = {}, recent = [] } = {}) {
                 <p class="text-subtle text-xs" style="margin-top:4px">Karahan's Studio</p>
             </div>
             <div class="admin-topbar-right">
-                <a class="btn btn-ghost btn-sm" href="/admin/2fa/setup" data-nav>2FA</a>
+                <a class="btn btn-ghost btn-sm" href="/admin/guvenlik">Güvenlik</a>
                 <a class="btn btn-ghost btn-sm" href="/" target="_blank">Site</a>
                 <a class="btn btn-danger btn-sm" href="/admin/logout">Çıkış</a>
             </div>
@@ -250,7 +249,7 @@ function renderAdminDashboardHTML({ stats = {}, recent = [] } = {}) {
                             <a class="btn btn-primary" data-nav data-view="products" href="#products">Yeni Ürün</a>
                             <a class="btn btn-secondary" data-nav data-view="updates" href="#updates">Güncelleme Yayınla</a>
                             <a class="btn btn-secondary" data-nav data-view="messages" href="#messages">Mesajları Oku</a>
-                            <a class="btn btn-secondary" href="/admin/2fa/setup">2FA Kur</a>
+                            <a class="btn btn-secondary" href="/admin/guvenlik">Güvenlik</a>
                         </div>
                     </article>
                 </div>
@@ -336,7 +335,29 @@ function renderAdminDashboardHTML({ stats = {}, recent = [] } = {}) {
     </div>`;
 }
 
+function renderAdminSecurity({ admin, csrf = '', paths, recoveryLeft = 0 } = {}) {
+    return `
+    <main class="auth-shell">
+        <div class="auth-card auth-card--wide" data-reveal>
+            <span class="auth-badge">Yönetici · Güvenlik</span>
+            <h1>Hesap güvenliği</h1>
+            <p class="auth-sub"><strong>${esc(admin.username)}</strong> · Son giriş: ${esc(admin.lastLoginAt ? new Date(admin.lastLoginAt).toLocaleString('tr-TR') : '—')}</p>
+            <ul class="step-list">
+                <li class="step-item"><span class="step-num">✓</span><span>Authenticator doğrulaması etkin.</span></li>
+                <li class="step-item"><span class="step-num">${esc(recoveryLeft)}</span><span>kullanılmamış kurtarma kodu kaldı.</span></li>
+            </ul>
+            <form method="POST" action="${esc(paths.recovery)}" class="auth-form">
+                <input type="hidden" name="_csrf" value="${esc(csrf)}">
+                <button class="btn btn-secondary" type="submit">Kurtarma kodlarını yenile</button>
+            </form>
+            <p class="form-hint">Parola değiştirmek veya 2FA'yı sıfırlamak için sunucuda <code>node tools/admin.js</code> aracını kullanın.</p>
+            <div class="auth-foot"><a href="/admin">← Panele dön</a></div>
+        </div>
+    </main>`;
+}
+
 module.exports = {
-    renderAdminGate, renderAdmin2FAGate, renderAdminEmailOtpGate, renderAdminSetupGate, renderAdminSetupComplete,
+    renderAdminSecurity,
+    renderAdminGate, renderAdmin2FAGate, renderAdminSetupGate, renderAdminSetupComplete, renderAdminAuth,
     renderAdminShell, renderAdminDashboardHTML, ICONS
 };

@@ -7,6 +7,7 @@
 
 const { esc, date } = require('../../core/views');
 const data = require('../../data');
+const { getProductUpdates } = require('./product');
 
 const ICON = {
     arrow: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
@@ -30,7 +31,7 @@ function renderAbout() {
     return `
     <section class="container" style="padding-top:var(--sp-6)">
         <header class="page-header" data-reveal>
-            <h1>Hakkında</h1>
+            <h1 data-split>Hakkında</h1>
             <p class="lead">Karahan's Studio; fikirden çalışan yazılıma uzanan yolculuğu tek elden yönetiyor. Tasarım, geliştirme, dağıtım — hepsi burada.</p>
         </header>
 
@@ -62,20 +63,34 @@ function renderAbout() {
 }
 
 /* ═══ Güncelleme Notları ═══ */
-function renderUpdates() {
-    const updates = data.updates()
-        .sort((a, b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''));
+function renderUpdates(product = null) {
+    const updates = product
+        ? getProductUpdates(product)
+        : data.updates().sort((a, b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''));
+    const productIdForUpdate = update => {
+        if (update.productId) return update.productId;
+        const owner = data.projects().find(project =>
+            (project.updates || []).some(item => item.id && String(item.id) === String(update.id))
+        );
+        return owner?.id;
+    };
+    const updateDetailHref = update => {
+        const productId = product ? product.id : productIdForUpdate(update);
+        return productId && update.id
+            ? `/guncellemeler/${esc(productId)}/${esc(update.id)}`
+            : `/guncellemeler/${esc(productId || '')}`;
+    };
 
     return `
     <section class="container" style="padding-top:var(--sp-6)">
         <header class="page-header" data-reveal>
-            <h1>Güncelleme Notları</h1>
-            <p class="lead">Tüm projelerdeki yeni sürümler, hata düzeltmeleri ve iyileştirmeler.</p>
+            <h1>${product ? `${esc(product.name)} Güncellemeleri` : 'Güncelleme Notları'}</h1>
+            <p class="lead">${product ? `${esc(product.name)} için yayınlanan güncellemeler.` : 'Tüm projelerdeki yeni sürümler, hata düzeltmeleri ve iyileştirmeler.'}</p>
         </header>
         ${updates.length === 0
             ? `<div class="empty-state" data-reveal><h3>Henüz güncelleme yok</h3><p>Yeni sürümler burada görünecek.</p></div>`
             : `<div class="updates-list">${updates.map(u => `
-                <article class="update-card surface" data-reveal>
+                <article class="update-card surface" id="guncelleme-${esc(u.id)}" data-reveal>
                     <div class="update-card-left">
                         ${u.image
                             ? `<img src="${esc(u.image)}" alt="${esc(u.title || 'Güncelleme')}" loading="lazy">`
@@ -83,17 +98,39 @@ function renderUpdates() {
                     </div>
                     <div class="update-card-body">
                         <div class="update-meta-top">
-                            <span class="badge badge--brand">v${esc(u.version || '')}</span>
+                            <span class="badge badge--brand">v${esc(String(u.version || '').replace(/^v/i, ''))}</span>
                             ${u.projectName ? `<span class="update-project">${esc(u.projectName)}</span>` : ''}
                             <span class="update-date">${date(u.date || u.createdAt)}</span>
                         </div>
                         <h3 class="update-card-title">${esc(u.title || 'Güncelleme')}</h3>
                         <p class="update-card-desc">${esc(u.description || '')}</p>
                         <div class="update-card-foot">
-                            <a class="btn btn-ghost btn-sm" href="/guncellemeler/${esc(u.id)}">Tüm Detaylar ${ICON.arrow}</a>
+                            <a class="btn btn-ghost btn-sm" href="${updateDetailHref(u)}">Tüm Detaylar ${ICON.arrow}</a>
                         </div>
                     </div>
                 </article>`).join('')}</div>`}
+    </section>`;
+}
+
+function renderUpdateDetail(update, product) {
+    const version = String(update.version || '').replace(/^v/i, '');
+    return `
+    <section class="container" style="padding-top:var(--sp-6)">
+        <article class="release-detail">
+            <a class="release-detail-back" href="/guncellemeler/${esc(product.id)}">← ${esc(product.name)} güncellemeleri</a>
+            <div class="release-detail-meta">
+                <span class="badge badge--brand">v${esc(version)}</span>
+                <time datetime="${esc(update.date || update.createdAt || '')}">${date(update.date || update.createdAt)}</time>
+            </div>
+            <h1 class="release-detail-title">${esc(update.title || 'Güncelleme')}</h1>
+            <p class="release-detail-product">${esc(product.name)}</p>
+            <div class="release-detail-rule" aria-hidden="true"></div>
+            <p class="release-detail-description">${esc(update.description || '')}</p>
+            ${update.image ? `
+            <figure class="release-detail-media">
+                <img src="${esc(update.image)}" alt="${esc(update.title || 'Güncelleme')}" loading="lazy">
+            </figure>` : ''}
+        </article>
     </section>`;
 }
 
@@ -381,6 +418,6 @@ function renderBanned(reason = '') {
 }
 
 module.exports = {
-    renderAbout, renderUpdates, renderUpcoming, renderContact, renderCustomerForm,
+    renderAbout, renderUpdates, renderUpdateDetail, renderUpcoming, renderContact, renderCustomerForm,
     renderLegal, renderNotFound, renderBanned, LEGAL
 };

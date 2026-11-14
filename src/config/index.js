@@ -16,6 +16,9 @@ const schema = z.object({
     SESSION_SECRET:    z.string().min(32, 'SESSION_SECRET en az 32 karakter olmalı'),
     ALLOWED_ORIGINS:   z.string().default(''),
 
+    ADMIN_LOGIN_PATH:  z.string().regex(/^\/[a-z0-9-]+$/i, 'ADMIN_LOGIN_PATH "/kelime" biçiminde olmalı').default('/panel-giris'),
+    ADMIN_IP_ALLOWLIST: z.string().default(''),
+
     SMTP_HOST:         z.string().default(''),
     SMTP_PORT:         z.coerce.number().default(587),
     SMTP_SECURE:       z.coerce.boolean().default(false),
@@ -52,11 +55,19 @@ module.exports = {
     port: env.PORT,
     origins: env.ALLOWED_ORIGINS.split(',').map(s => s.trim()).filter(Boolean),
 
+    admin: {
+        loginPath: env.ADMIN_LOGIN_PATH,
+        ipAllowlist: env.ADMIN_IP_ALLOWLIST.split(',').map(s => s.trim()).filter(Boolean),
+        idleMs: 2 * 60 * 60 * 1000,        // 2 saat hareketsizlikte düşer
+        absoluteMs: 12 * 60 * 60 * 1000,   // 12 saat sonra kesinlikle yenilenir
+        pendingMs: 10 * 60 * 1000          // parola sonrası 2FA için süre
+    },
+
     session: {
         secret: env.SESSION_SECRET,
         cookieName: 'ks.sid',
         maxAgeMs: 30 * 24 * 60 * 60 * 1000,   // 30 gün
-        rolling: true
+        rolling: false /* performans: her istekte oturum yazımını engeller */
     },
 
     smtp: env.SMTP_HOST ? {

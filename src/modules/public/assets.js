@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    modules/public/assets.js — İçerik hash'li varlık sürümleme.
-   style.css, theme.js vb. sürümü içerik hash'inden üretilir;
+   style.css ve istemci betiklerinin sürümü içerik hash'inden üretilir;
    bu sayede önbellek (max-age=30 gün) ile birlikte dosya değiştiğinde
    tarayıcılar eski sürümü kullanmaz.
    ═══════════════════════════════════════════════════════════════ */

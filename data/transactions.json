@@ -12,5 +12,17 @@
     "amount": 200,
     "date": "2026-08-14T20:50:46.771Z",
     "description": "CPanel kirası ödendi"
+  },
+  {
+    "id": 1786740646772,
+    "type": "income",
+    "amount": 2000,
+    "description": "Deneme ",
+    "recipient": "",
+    "date": "2026-10-18",
+    "productId": "",
+    "productName": "",
+    "userId": "",
+    "createdAt": "2026-10-18T21:59:46.812Z"
   }
 ]

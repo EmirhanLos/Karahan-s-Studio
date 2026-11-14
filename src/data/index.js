@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
-   data/index.js — İş alanlarına göre kapsüllenmiş depolar.
-   Tek tek dosya adlarıyla uğraşmak yerine buradan erişilir.
+   data/index.js — SQLite üzerindeki iş alanı depoları.
+   Tek tek anahtarlarla uğraşmak yerine buradan erişilir.
    Şema doğrulama zod ile katmanın dışında yapılır.
    ═══════════════════════════════════════════════════════════════ */
 'use strict';

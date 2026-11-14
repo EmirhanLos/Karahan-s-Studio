@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════════════════════ */
 'use strict';
 
-const { esc, money, date } = require('../../core/views');
+const { esc, money } = require('../../core/views');
 const data = require('../../data');
 
 const ICONS = {
@@ -44,20 +44,19 @@ function renderProjectCard(p) {
 function renderHome() {
     const projects = data.projects()
         .filter(p => p.status === 'Yayında' || p.status === 'Beta')
-        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-
-    const upcoming = data.upcoming()
-        .filter(u => u.featured)
-        .sort((a, b) => (a.launchDate || '').localeCompare(b.launchDate || ''))[0]
-        || data.upcoming()[0];
+        .sort((a, b) => {
+            const dateA = a.createdAt || a.date || a.updatedAt || '';
+            const dateB = b.createdAt || b.date || b.updatedAt || '';
+            return dateB.localeCompare(dateA);
+        });
 
     return `
     <section class="hero hero--studio">
         <div class="container">
-            <div class="hero-grid">
+            <div class="hero-grid hero-grid--centered">
                 <div class="hero-copy" data-reveal>
                     <span class="hero-eyebrow"><span class="eyebrow-dot"></span> Bağımsız yazılım stüdyosu · Ankara</span>
-                    <h1>İyi fikirler,<br><span>iyi yazılımlara</span><br>dönüşür.</h1>
+                    <h1 data-split>İyi fikirler,<br><span>iyi yazılımlara</span><br>dönüşür.</h1>
                     <p class="hero-sub">Günlük hayatı kolaylaştıran uygulamalar, sistem araçları ve oyunlar. Her fikri, özenle tasarlanmış gerçek bir ürüne dönüştürüyoruz.</p>
                     <div class="hero-actions">
                         <a class="btn btn-primary" href="#projeler">Projeleri keşfet ${ICONS.arrow}</a>
@@ -66,19 +65,6 @@ function renderHome() {
                     <div class="hero-links" aria-label="Stüdyo alanları">
                         <span>Ürün tasarımı</span><span>Yazılım geliştirme</span><span>Oyun</span>
                     </div>
-                </div>
-                <div class="hero-visual" aria-hidden="true">
-                    <div class="studio-art">
-                        <div class="studio-art-top"><span>KS—01</span><span>DİJİTAL ATÖLYE</span></div>
-                        <div class="studio-art-mark">
-                            <span class="art-orbit art-orbit--one"></span>
-                            <span class="art-orbit art-orbit--two"></span>
-                            <span class="art-core">K</span>
-                            <span class="art-index">FİKİR<br>→ ÜRÜN</span>
-                        </div>
-                        <div class="studio-art-bottom"><span>MERAKLA BAŞLAR</span><span>ÖZENLE BİTER ↗</span></div>
-                    </div>
-                    <span class="hero-sticker">TASARLA<br>İNŞA ET<br>İYİLEŞTİR<span>✳</span></span>
                 </div>
             </div>
         </div>
@@ -91,37 +77,14 @@ function renderHome() {
         <a class="text-link" href="/hakkinda">Stüdyoyu tanı ${ICONS.arrow}</a>
     </section>
 
-    ${upcoming ? `
-    <section class="container home-feature-section">
-        <article class="home-feature" data-reveal>
-            <div class="home-feature-art" aria-hidden="true">
-                <span class="feature-art-label">YENİ FİKİR / 01</span>
-                <span class="feature-art-shape feature-art-shape--one"></span>
-                <span class="feature-art-shape feature-art-shape--two"></span>
-                <span class="feature-art-star">✳</span>
-                <span class="feature-art-caption">ÇOK YAKINDA</span>
-            </div>
-            <div class="home-feature-copy">
-                <span class="section-kicker">Atölyeden çıkanlar · Yakında</span>
-                <h2>${esc(upcoming.name)}</h2>
-                <p>${esc(upcoming.description || 'Yeni bir fikir üzerinde çalışıyoruz. Detaylar için takipte kalın.')}</p>
-                <div class="home-feature-meta">
-                    <span>${upcoming.launchDate ? date(upcoming.launchDate) : 'Çıkış tarihi yakında'}</span>
-                    <a class="text-link" href="/yakinda">Geliştirme sürecini gör ${ICONS.arrow}</a>
-                </div>
-            </div>
-        </article>
-    </section>
-    ` : ''}
-
-    <section class="container popular-section" id="projeler">
+    <section class="container latest-section" id="projeler">
         <div class="section-head" data-reveal>
-            <div><p class="section-kicker">Seçilmiş işler</p><h2>Fikirden ürüne.</h2></div>
+            <div><p class="section-kicker">Stüdyodan yeni çıkanlar</p><h2>En Son Çıkanlar</h2></div>
             <a class="view-all" href="/projeler">Tüm projeler ${ICONS.arrow}</a>
         </div>
         ${projects.length === 0
-            ? `<div class="projects-empty" data-reveal><span class="projects-empty-index">01 / YAKINDA</span><div><h3>Yeni projeler yolda.</h3><p>Üzerinde çalıştığımız ürünleri ve yeni sürümleri burada paylaşacağız.</p></div><a class="text-link" href="/guncellemeler">Güncellemeleri takip et ${ICONS.arrow}</a></div>`
-            : `<div class="popular-grid">${projects.slice(0, 4).map(renderProjectCard).join('')}</div>`}
+            ? `<div class="projects-empty" data-reveal><span class="projects-empty-index">01 / YAKINDA</span><div><h3>Yeni projeler yolda.</h3><p>Üzerinde çalıştığımız ürünleri ve yeni sürümleri burada paylaşacağız.</p></div><a class="text-link" href="/yakinda">Yakında sayfasını gör ${ICONS.arrow}</a></div>`
+            : `<div class="popular-grid latest-grid">${projects.slice(0, 5).map(renderProjectCard).join('')}</div>`}
     </section>
 
     <section class="studio-cta">

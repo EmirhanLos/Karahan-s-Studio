@@ -13,7 +13,6 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const helmet  = require('helmet');
 const compression = require('compression');
-const cookieSession = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
 const rateLimit = require('express-rate-limit');
 
@@ -89,8 +88,7 @@ app.use('/giris', rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders
 app.use('/kayit', rateLimit({ windowMs: 60 * 60 * 1000, max: 5,  standardHeaders: true, legacyHeaders: false, message: 'Çok fazla kayıt denemesi.' }));
 app.use('/sifremi-unuttum', rateLimit({ windowMs: 60 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false, message: 'Çok fazla istek.' }));
 app.use('/2fa',    rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, message: 'Çok fazla deneme.' }));
-app.use('/admin/login', rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, message: 'Çok fazla yönetici giriş denemesi.' }));
-app.use('/admin/2fa', rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, message: 'Çok fazla yönetici doğrulama denemesi.' }));
+app.use(config.admin.loginPath, rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false, message: 'Çok fazla yönetici giriş denemesi.' }));
 
 /* ── CSRF ────────────────────────────────────────────────────── */
 function generateCsrf(req) {
@@ -112,6 +110,8 @@ app.use((req, res, next) => {
     res.locals.path   = req.path;
     res.locals.origin = `${req.protocol}://${req.get('host')}`;
     res.locals.user   = req.session?.authenticatedBy === 'firebase' && req.session.userId ? data.userById(req.session.userId) : null;
+    req.user          = res.locals.user;
+    res.locals.admin  = null;
     next();
 });
 
@@ -126,35 +126,37 @@ app.use((req, res, next) => {
         return res.status(403).send(renderPage({
             title: 'Erişim engellendi',
             body: renderBanned(reason),
-            current: ''
+            current: '',
+            user
         }));
     }
     next();
-});
-
-/* ── Hata yakalama ──────────────────────────────────────────── */
-app.use((err, req, res, next) => {
-    console.error(`[${new Date().toISOString()}] ${req.method} ${req.path}:`, err);
-    if (req.path.startsWith('/api/')) {
-        return res.status(500).json({ error: 'Sunucu hatası.' });
-    }
-    res.status(500).send('Sunucu hatası.');
 });
 
 /* ═══════════════════════════════════════════════════════════════
    ROTALAR — her modül kendi dosyasında tanımlı, burada bağlanır
    ═══════════════════════════════════════════════════════════════ */
 
-require('./modules/public/routes')(app);
+require('./modules/public/routes')(app, { generateCsrf, requireCsrf });
 require('./modules/auth/routes')(app, { generateCsrf, requireCsrf });
 require('./modules/admin/routes')(app, { generateCsrf, requireCsrf });
+
+/* ── Hata yakalama ──────────────────────────────────────────── */
+app.use((err, req, res, next) => {
+    console.error(`[${new Date().toISOString()}] ${req.method} ${req.path}:`, err);
+    if (res.headersSent) return next(err);
+    if (req.path.startsWith('/api/')) {
+        return res.status(500).json({ error: 'Sunucu hatası.' });
+    }
+    res.status(500).send('Sunucu hatası.');
+});
 
 /* ═══ 404 ve yasak sayfası ═══ */
 app.use((req, res) => {
     const { renderNotFound } = require('./modules/public/misc');
     const { renderPage } = require('./modules/public/layout');
     const body = renderNotFound();
-    res.status(404).send(renderPage({ title: 'Sayfa bulunamadı', body, current: '' }));
+    res.status(404).send(renderPage({ title: 'Sayfa bulunamadı', body, current: '', user: req.user }));
 });
 
 /* ── Sunucu ─────────────────────────────────────────────────── */

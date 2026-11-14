@@ -11,7 +11,7 @@ function initials(user) {
     return (user.firstName || 'K').charAt(0).toUpperCase() + (user.lastName || '').charAt(0).toUpperCase();
 }
 
-function renderProfile({ user, csrf = '', tfaOn = false }) {
+function renderProfile({ user, csrf = '', tfaOn = false, messages = [] }) {
     return `
     <section class="container" style="padding-top:var(--sp-6)">
         <header class="page-header" data-reveal>
@@ -57,6 +57,34 @@ function renderProfile({ user, csrf = '', tfaOn = false }) {
                     <a class="btn btn-primary" href="/profil/2fa" style="margin-top:var(--sp-4)">2FA Ayarları</a>
                 </article>
             </div>
+
+            <section class="profile-messages surface" data-reveal>
+                <header class="profile-messages-head">
+                    <div>
+                        <h2>İletişim Formlarım</h2>
+                        <p class="text-muted">Gönderdiğin iletişim mesajları burada saklanır.</p>
+                    </div>
+                    <span class="badge badge--neutral">${messages.length} kayıt</span>
+                </header>
+                ${messages.length
+                    ? `<div class="profile-message-list">
+                        ${messages.map(message => `
+                            <article class="profile-message${message.read ? ' profile-message--read' : ''}">
+                                <div class="profile-message-meta">
+                                    <div class="profile-message-title">
+                                        <h3>${esc(message.subject || 'Konu belirtilmedi')}</h3>
+                                        <span class="profile-message-status${message.read ? ' is-read' : ''}">
+                                            ${message.read ? 'Okundu' : 'Gönderildi'}
+                                        </span>
+                                    </div>
+                                    <time datetime="${esc(message.date || '')}">${date(message.date)}</time>
+                                </div>
+                                <p>${esc(message.message || '')}</p>
+                                ${message.phone ? `<span class="profile-message-phone">Telefon: ${esc(message.phone)}</span>` : ''}
+                            </article>`).join('')}
+                    </div>`
+                    : `<p class="profile-messages-empty">Henüz gönderilmiş bir iletişim formun yok.</p>`}
+            </section>
 
             <article class="surface danger-zone" style="padding:var(--sp-6);border-color:var(--c-bad)" data-reveal>
                 <h3 style="color:var(--c-bad);margin-bottom:var(--sp-3)">Tehlikeli Bölge</h3>
