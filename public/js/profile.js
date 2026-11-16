@@ -1,4 +1,4 @@
-﻿const { escapeHtml } = require('./layout');
+﻿const { escapeHtml, asset } = require('./layout');
 
 // Card detection function
 function maskCardNumber(cardNumber) {
@@ -45,7 +45,8 @@ function getCardIcon(cardType) {
 }
 
 function renderProfile(user, errorHtml = '', successHtml = '', csrfToken = '') {
-    const csrfField = csrfToken ? `<input type="hidden" name="csrfToken" value="${escapeHtml(csrfToken)}">` : '';
+    /* CSRF alan adı sunucu ile aynı olmalı: `_csrf` (core/csrf.js) */
+    const csrfField = csrfToken ? `<input type="hidden" name="_csrf" value="${escapeHtml(csrfToken)}">` : '';
     if (!user) {
         return `
         <div class="page-header">
@@ -86,7 +87,7 @@ function renderProfile(user, errorHtml = '', successHtml = '', csrfToken = '') {
                                 stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                         <input type="file" accept="image/*" id="avatarFileInput" style="display:none"
-                            onchange="uploadAvatar(this)">
+                            data-avatar-upload>
                     </label>
                     <p class="avatar-upload-msg" id="avatarMsg"></p>
                 </div>
@@ -222,7 +223,7 @@ function renderProfile(user, errorHtml = '', successHtml = '', csrfToken = '') {
                                     <label>MEVCUT ŞİFRE</label>
                                     <div class="input-wrapper">
                                         <input type="password" name="currentPassword" required autocomplete="current-password" id="emailCurrentPassword" placeholder="••••••••">
-                                        <button type="button" class="password-toggle" onclick="togglePasswordField('emailCurrentPassword', this)" aria-label="Şifreyi göster/gizle">
+                                        <button type="button" class="password-toggle" data-pw-toggle="emailCurrentPassword" aria-label="Şifreyi göster/gizle">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                                 <circle cx="12" cy="12" r="3"></circle>
@@ -268,7 +269,7 @@ function renderProfile(user, errorHtml = '', successHtml = '', csrfToken = '') {
                                     <label>MEVCUT ŞİFRE</label>
                                     <div class="input-wrapper">
                                         <input type="password" name="currentPassword" required autocomplete="current-password" id="currentPassword" placeholder="••••••••">
-                                        <button type="button" class="password-toggle" onclick="togglePasswordField('currentPassword', this)" aria-label="Şifreyi göster/gizle">
+                                        <button type="button" class="password-toggle" data-pw-toggle="currentPassword" aria-label="Şifreyi göster/gizle">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                                 <circle cx="12" cy="12" r="3"></circle>
@@ -280,7 +281,7 @@ function renderProfile(user, errorHtml = '', successHtml = '', csrfToken = '') {
                                     <label>YENİ ŞİFRE</label>
                                     <div class="input-wrapper">
                                         <input type="password" name="newPassword" required autocomplete="new-password" minlength="8" id="newPassword" placeholder="En az 8 karakter">
-                                        <button type="button" class="password-toggle" onclick="togglePasswordField('newPassword', this)" aria-label="Şifreyi göster/gizle">
+                                        <button type="button" class="password-toggle" data-pw-toggle="newPassword" aria-label="Şifreyi göster/gizle">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                                 <circle cx="12" cy="12" r="3"></circle>
@@ -292,7 +293,7 @@ function renderProfile(user, errorHtml = '', successHtml = '', csrfToken = '') {
                                     <label>YENİ ŞİFRE TEKRAR</label>
                                     <div class="input-wrapper">
                                         <input type="password" name="newPassword2" required autocomplete="new-password" minlength="8" id="newPassword2" placeholder="Şifreyi tekrar girin">
-                                        <button type="button" class="password-toggle" onclick="togglePasswordField('newPassword2', this)" aria-label="Şifreyi göster/gizle">
+                                        <button type="button" class="password-toggle" data-pw-toggle="newPassword2" aria-label="Şifreyi göster/gizle">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                                 <circle cx="12" cy="12" r="3"></circle>
@@ -325,91 +326,12 @@ function renderProfile(user, errorHtml = '', successHtml = '', csrfToken = '') {
             <!-- Hesap İşlemleri - Altta küçük butonlar -->
             <div class="profile-account-actions">
                 <a href="/cikis" class="profile-action-btn profile-action-btn--secondary">Çıkış Yap</a>
-                <button onclick="deleteAccount()" class="profile-action-btn profile-action-btn--danger">Hesabı Sil</button>
+                <button data-delete-account class="profile-action-btn profile-action-btn--danger">Hesabı Sil</button>
             </div>
         </div>
     </main>
 
-    <script>
-    const csrfToken = ${JSON.stringify(csrfToken || '')};
-
-    // Şifre alanlarını göster/gizle fonksiyonu
-    function togglePasswordField(inputId, btn) {
-        const input = document.getElementById(inputId);
-        const svg = btn.querySelector('svg');
-        if (input.type === 'password') {
-            input.type = 'text';
-            // Gizlenmiş göz ikonu
-            svg.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.92 9.92 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
-        } else {
-            input.type = 'password';
-            // Normal göz ikonu
-            svg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
-        }
-    }
-
-    async function uploadAvatar(input) {
-        const file = input.files[0];
-        if (!file) return;
-        const msg = document.getElementById('avatarMsg');
-        const form = new FormData();
-        form.append('avatar', file);
-        msg.textContent = 'Yükleniyor...';
-        msg.style.color = 'var(--text-faint)';
-        try {
-            const res  = await fetch('/api/upload/avatar', { method: 'POST', body: form });
-            const data = await res.json();
-            if (res.ok) {
-                // Update profile page avatar
-                const avatarEl = document.querySelector('.profile-avatar');
-                if (avatarEl) {
-                    avatarEl.innerHTML = '<img src="'+data.url+'" alt="Profil fotoğrafı" class="profile-avatar-img">';
-                }
-                // Update navbar avatar immediately
-                const navAvatar = document.querySelector('.nav-avatar');
-                if (navAvatar) {
-                    navAvatar.innerHTML = '<img src="'+data.url+'" alt="Profil" class="nav-avatar-img">';
-                }
-                msg.textContent = 'Fotoğraf güncellendi!';
-                msg.style.color = '#4ade80';
-            } else {
-                msg.textContent = data.error || 'Hata oluştu.';
-                msg.style.color = '#f87171';
-            }
-        } catch {
-            msg.textContent = 'Bağlantı hatası.';
-            msg.style.color = '#f87171';
-        }
-    }
-
-    function deleteAccount() {
-        if (!confirm('Hesabınızı silmek istediğine emin misiniz? Bu işlem geri alınamaz.')) return;
-        if (!confirm('Tüm verileriniz kalıcı olarak silinecek. Devam etmek istiyor musunuz?')) return;
-        
-        // Backend'e hesap silme isteği gönder
-        fetch('/profil/sil', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ csrfToken })
-        })
-        .then(res => {
-            if (res.redirected) {
-                window.location.href = res.url;
-            } else {
-                return res.json();
-            }
-        })
-        .then(data => {
-            if (data && data.error) {
-                alert('Hata: ' + data.error);
-            }
-        })
-        .catch(err => {
-            console.error('Hesap silme hatası:', err);
-            alert('Bir hata oluştu. Lütfen tekrar deneyin.');
-        });
-    }
-    </script>`;
+    <script src="${asset('/js/profile-client.js')}" defer></script>`;
 }
 
 function renderProfileEdit(user) {
@@ -434,7 +356,7 @@ function renderProfileEdit(user) {
                             <label class="btn-admin btn-admin-secondary" style="cursor:pointer">
                                 📁 Fotoğraf Seç
                                 <input type="file" name="avatarFile" accept="image/*" style="display:none"
-                                    id="avatarFileInput" onchange="previewAndUploadAvatar(this)">
+                                    id="avatarFileInput" data-avatar-preview-upload>
                             </label>
                         </div>
                         <p class="avatar-upload-msg" id="avatarMsg"></p>
@@ -457,7 +379,7 @@ function renderProfileEdit(user) {
                     </div>
 
                     <h4 class="form-section-label">Kart Bilgileri</h4>
-                    <div class="form-group"><label>Kart Numarası</label><input type="text" name="cardNumber" value="${v(user?.card?.number)}" id="cardNumberInput" oninput="updateCardBrand()" placeholder="XXXX XXXX XXXX XXXX"></div>
+                    <div class="form-group"><label>Kart Numarası</label><input type="text" name="cardNumber" value="${v(user?.card?.number)}" id="cardNumberInput" data-card-brand placeholder="XXXX XXXX XXXX XXXX"></div>
                     <div class="form-grid">
                         <div class="form-group"><label>Kart Sahibi</label><input type="text" name="cardHolder" value="${v(user?.card?.holder)}"></div>
                         <div class="form-group"><label>Son Kullanım</label><input type="text" name="cardExpiry" value="${v(user?.card?.expiry)}" placeholder="MM/YY"></div>
@@ -472,87 +394,12 @@ function renderProfileEdit(user) {
             </div>
         </div>
     </main>
-    <script>
-    function previewImg(input, previewId) {
-        const file = input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const el = document.getElementById(previewId);
-            if (el.tagName === 'IMG') {
-                el.src = e.target.result;
-            } else {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.className = 'img-preview';
-                img.id = previewId;
-                el.replaceWith(img);
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-
-    async function previewAndUploadAvatar(input) {
-        const file = input.files[0];
-        if (!file) return;
-        
-        // Show preview immediately
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const el = document.getElementById('imgPreview');
-            if (el.tagName === 'IMG') {
-                el.src = e.target.result;
-            } else {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.className = 'img-preview';
-                img.id = 'imgPreview';
-                el.replaceWith(img);
-            }
-        };
-        reader.readAsDataURL(file);
-
-        // Upload to server
-        const form = new FormData();
-        form.append('avatarFile', file);
-        const msgEl = document.getElementById('avatarMsg');
-        if (msgEl) {
-            msgEl.textContent = 'Yükleniyor...';
-            msgEl.style.color = 'var(--text-faint)';
-        }
-
-        try {
-            const res = await fetch('/api/upload/avatar', { method: 'POST', body: form });
-            const data = await res.json();
-            if (res.ok) {
-                // Update navbar avatar immediately
-                const navAvatar = document.querySelector('.nav-avatar');
-                if (navAvatar) {
-                    navAvatar.innerHTML = '<img src="'+data.url+'" alt="Profil" class="nav-avatar-img">';
-                }
-                if (msgEl) {
-                    msgEl.textContent = 'Fotoğraf güncellendi!';
-                    msgEl.style.color = '#4ade80';
-                }
-            } else {
-                if (msgEl) {
-                    msgEl.textContent = data.error || 'Hata oluştu.';
-                    msgEl.style.color = '#f87171';
-                }
-            }
-        } catch (err) {
-            console.error('Avatar upload error:', err);
-            if (msgEl) {
-                msgEl.textContent = 'Bağlantı hatası.';
-                msgEl.style.color = '#f87171';
-            }
-        }
-    }
-    </script>`;
+    <script src="${asset('/js/profile-client.js')}" defer></script>`;
 }
 
 function renderOtpForm(type, title, subtitle, action, email, error = '', csrfToken = '') {
-    const csrfField = csrfToken ? `<input type="hidden" name="csrfToken" value="${escapeHtml(csrfToken)}">` : '';
+    /* CSRF alan adı sunucu ile aynı olmalı: `_csrf` (core/csrf.js) */
+    const csrfField = csrfToken ? `<input type="hidden" name="_csrf" value="${escapeHtml(csrfToken)}">` : '';
     return `
     <main>
         <div class="page-header">
@@ -583,37 +430,9 @@ function renderOtpForm(type, title, subtitle, action, email, error = '', csrfTok
     </main>`;
 }
 
-// JavaScript function for automatic card detection
-const cardDetectionScript = `
-<script>
-function updateCardBrand() {
-    const cardNumber = document.getElementById('cardNumberInput').value.replace(/\s/g, '');
-    const cardBrandInput = document.getElementById('cardBrandInput');
-    
-    if (!cardNumber) {
-        cardBrandInput.value = '';
-        return;
-    }
-    
-    const patterns = {
-        visa: /^4/,
-        mastercard: /^5[1-5]/,
-        amex: /^3[47]/,
-        discover: /^6(?:011|5)/,
-        diners: /^3(?:0[0-5]|[68])/,
-        jcb: /^(?:2131|1800|35)/,
-    };
-    
-    for (const [type, pattern] of Object.entries(patterns)) {
-        if (pattern.test(cardNumber)) {
-            cardBrandInput.value = type;
-            return;
-        }
-    }
-    
-    cardBrandInput.value = '';
-}
-</script>
-`;
+/* Kart markası algılama artık profile-client.js içinde yaşıyor
+   (data-card-brand özniteliği ile bağlanır). Satır içi <script>
+   bloğu kullanılmaz. */
+const cardDetectionScript = `<script src="${asset('/js/profile-client.js')}" defer></script>`;
 
 module.exports = { renderProfile, renderProfileEdit, renderOtpForm, cardDetectionScript };

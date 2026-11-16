@@ -15,11 +15,14 @@ const helmet  = require('helmet');
 const compression = require('compression');
 const SQLiteStore = require('connect-sqlite3')(session);
 const rateLimit = require('express-rate-limit');
+const nodemailer = require('nodemailer');
 
 const config = require('./config');
 const { esc } = require('./core/views');
 const { asset } = require('./modules/public/assets');
 const audit = require('./core/audit');
+const data = require('./data');
+const store = require('./data/store');
 
 /* ── Uygulama ────────────────────────────────────────────────── */
 const app = express();
@@ -31,7 +34,12 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc:  ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
+            /* 'unsafe-inline' kaldırıldı: şablon içi <script> blokları
+               ve onclick/onsubmit gibi satır içi olay işleyicileri
+               artık çalıştırılmaz. Tüm betikler public/js/ altından
+               <script src="..."> ile yüklenir. */
+            scriptSrc:  ["'self'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
+            scriptSrcAttr: ["'none'"],
             styleSrc:   ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
             fontSrc:    ["'self'", 'https://fonts.gstatic.com', 'data:'],
             imgSrc:     ["'self'", 'data:', 'https:'],
@@ -91,20 +99,12 @@ app.use('/2fa',    rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeader
 app.use(config.admin.loginPath, rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false, message: 'Çok fazla yönetici giriş denemesi.' }));
 
 /* ── CSRF ────────────────────────────────────────────────────── */
-function generateCsrf(req) {
-    if (!req.session.csrf) req.session.csrf = crypto.randomBytes(24).toString('hex');
-    return req.session.csrf;
-}
-function requireCsrf(req, res, next) {
-    const sent = req.body?._csrf || req.headers['x-csrf-token'];
-    if (!req.session.csrf || sent !== req.session.csrf) {
-        return res.status(403).send('Geçersiz istek. Lütfen sayfayı yenileyin.');
-    }
-    next();
-}
+/* Uygulama genelinde tek bir uygulama: token üretimi ve doğrulama
+   core/csrf.js içinde. Alan adı `_csrf` — tüm POST formları bu
+   gizli alanı içermelidir. */
+const { generateCsrf, requireCsrf } = require('./core/csrf');
 
 /* ── Oturum bilgisi (tüm şablonlara aktarılır) ─────────────── */
-const data = require('./data');
 app.use((req, res, next) => {
     res.locals = res.locals || {};
     res.locals.path   = req.path;
@@ -134,9 +134,224 @@ app.use((req, res, next) => {
 });
 
 /* ═══════════════════════════════════════════════════════════════
+   OTOMATİK PROJE HATIRLATMA (1 DK) VE AYLIK ANALİZ (30 GÜN)
+   ═══════════════════════════════════════════════════════════════ */
+const mailTransporter = config.smtp ? nodemailer.createTransport({
+    host: config.smtp.host,
+    port: config.smtp.port,
+    secure: config.smtp.secure,
+    requireTLS: config.smtp.requireTLS,
+    auth: config.smtp.auth
+}) : null;
+
+function readTracking() {
+    return store.read('tracking', { pendingProjects: [], monthlyLog: {} });
+}
+
+function writeTracking(state) {
+    store.write('tracking', state);
+}
+
+async function sendWhatsAppMessage(phone, text) {
+    const apiUrl = process.env.WHATSAPP_API_URL;
+    const apiToken = process.env.WHATSAPP_API_TOKEN;
+    if (!apiUrl || !apiToken) {
+        console.log(`[WhatsApp Simülasyon -> ${phone}]: ${text}`);
+        return;
+    }
+    const cleanPhone = String(phone).replace(/\D/g, '');
+    await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiToken}`
+        },
+        body: JSON.stringify({ to: cleanPhone, message: text })
+    });
+}
+
+async function sendUserNotification(user, subject, text) {
+    try {
+        if (user.phone && String(user.phone).trim() !== '') {
+            await sendWhatsAppMessage(user.phone, text);
+        } else if (user.email) {
+            if (mailTransporter) {
+                await mailTransporter.sendMail({
+                    from: config.smtp.from,
+                    to: user.email,
+                    subject,
+                    text
+                });
+            } else {
+                console.log(`[E-posta Simülasyon -> ${user.email}]: ${text}`);
+            }
+        }
+    } catch (err) {
+        console.error('Bildirim gönderim hatası:', err.message);
+    }
+}
+
+function recordPendingProject(userId, projectId) {
+    if (!userId || !projectId) return;
+    const project = data.projectById(projectId);
+    if (!project) return;
+
+    const state = readTracking();
+    const existing = state.pendingProjects.find(
+        c => String(c.userId) === String(userId) && String(c.projectId) === String(project.id) && !c.completed
+    );
+    if (existing) {
+        existing.leftAt = null;
+        existing.notified = false;
+        existing.updatedAt = Date.now();
+    } else {
+        state.pendingProjects.push({
+            userId: String(userId),
+            projectId: String(project.id),
+            projectName: project.name,
+            leftAt: null,
+            notified: false,
+            completed: false,
+            updatedAt: Date.now()
+        });
+    }
+    writeTracking(state);
+}
+
+function completePendingProject(userId, projectId) {
+    if (!userId || !projectId) return;
+    const state = readTracking();
+    let changed = false;
+    for (const item of state.pendingProjects) {
+        if (String(item.userId) === String(userId) && String(item.projectId) === String(projectId) && !item.completed) {
+            item.completed = true;
+            changed = true;
+        }
+    }
+    if (changed) writeTracking(state);
+}
+
+// Public rotalardan ÖNCE çalışır: incelenen ve yarım bırakılan projeleri yakalar
+app.use((req, res, next) => {
+    if (req.user) {
+        const viewMatch = req.path.match(/^\/(?:urun|satin-al)\/([^/]+)$/);
+        const doneMatch = req.path.match(/^\/(?:satin-al\/([^/]+)\/onayla|indir\/([^/]+))$/);
+        if (viewMatch && req.method === 'GET') {
+            recordPendingProject(req.user.id, decodeURIComponent(viewMatch[1]));
+        } else if (doneMatch) {
+            completePendingProject(req.user.id, decodeURIComponent(doneMatch[1] || doneMatch[2]));
+        }
+    }
+    next();
+});
+
+app.post('/api/track/exit', (req, res) => {
+    if (req.user) {
+        const state = readTracking();
+        const now = Date.now();
+        let changed = false;
+        for (const item of state.pendingProjects) {
+            if (String(item.userId) === String(req.user.id) && !item.completed && !item.notified && !item.leftAt) {
+                item.leftAt = now;
+                changed = true;
+            }
+        }
+        if (changed) writeTracking(state);
+    }
+    res.status(204).end();
+});
+
+app.post('/api/track/active', (req, res) => {
+    if (req.user) {
+        const state = readTracking();
+        let changed = false;
+        for (const item of state.pendingProjects) {
+            if (String(item.userId) === String(req.user.id) && !item.completed && !item.notified && item.leftAt) {
+                item.leftAt = null;
+                changed = true;
+            }
+        }
+        if (changed) writeTracking(state);
+    }
+    res.status(204).end();
+});
+
+setInterval(async () => {
+    const now = Date.now();
+    const state = readTracking();
+    let changed = false;
+
+    // 1) Site kapatıldıktan 1 dakika sonra yarım bırakılan proje hatırlatması
+    const dueByUser = new Map();
+    for (const item of state.pendingProjects) {
+        if (!item.completed && !item.notified && item.leftAt && (now - item.leftAt >= 60 * 1000)) {
+            if (!dueByUser.has(item.userId)) dueByUser.set(item.userId, []);
+            dueByUser.get(item.userId).push(item);
+        }
+    }
+
+    for (const [userId, items] of dueByUser.entries()) {
+        const user = data.userById(userId);
+        for (const item of items) {
+            item.notified = true;
+            changed = true;
+        }
+        if (!user || user.banned) continue;
+
+        const names = items.map(i => i.projectName).join(', ');
+        const msg = `Karahan's Studio: İncelediğin ${names} projesi seni bekliyor. İşlemini tamamlamak için siteye dönebilirsin.`;
+        await sendUserNotification(user, 'İncelediğin Proje Seni Bekliyor', msg);
+    }
+
+    // 2) Her ay (30 günde bir) gezilen proje analizi ve öneri mesajı
+    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+    const allProjects = data.projects();
+
+    for (const user of data.users()) {
+        if (user.banned) continue;
+        const lastSent = Number(state.monthlyLog[user.id]) || new Date(user.createdAt || now).getTime();
+        if (now - lastSent < THIRTY_DAYS_MS) continue;
+
+        const recentViews = (Array.isArray(user.viewedProducts) ? user.viewedProducts : [])
+            .filter(v => now - new Date(v.viewedAt).getTime() <= THIRTY_DAYS_MS);
+
+        if (recentViews.length === 0) {
+            state.monthlyLog[user.id] = now;
+            changed = true;
+            continue;
+        }
+
+        const categoryCounts = {};
+        const viewedIds = new Set();
+        for (const v of recentViews) {
+            viewedIds.add(String(v.productId));
+            const proj = allProjects.find(p => String(p.id) === String(v.productId));
+            const cat = proj?.category || 'Araç';
+            categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+        }
+
+        const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+        let recommended = allProjects.filter(p => p.category === topCategory && !viewedIds.has(String(p.id))).slice(0, 3);
+        if (recommended.length === 0) {
+            recommended = allProjects.filter(p => p.category === topCategory).slice(0, 3);
+        }
+
+        if (recommended.length > 0) {
+            const recNames = recommended.map(p => p.name).join(', ');
+            const msg = `Senin için birkaç tane proje bulundu: ${recNames}. İncelemek için Karahan's Studio'yu ziyaret edebilirsin.`;
+            await sendUserNotification(user, 'Senin İçin Yeni Projeler Bulundu', msg);
+        }
+
+        state.monthlyLog[user.id] = now;
+        changed = true;
+    }
+
+    if (changed) writeTracking(state);
+}, 15 * 1000);
+
+/* ═══════════════════════════════════════════════════════════════
    ROTALAR — her modül kendi dosyasında tanımlı, burada bağlanır
    ═══════════════════════════════════════════════════════════════ */
-
 require('./modules/public/routes')(app, { generateCsrf, requireCsrf });
 require('./modules/auth/routes')(app, { generateCsrf, requireCsrf });
 require('./modules/admin/routes')(app, { generateCsrf, requireCsrf });

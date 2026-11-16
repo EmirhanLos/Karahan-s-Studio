@@ -238,28 +238,12 @@ function renderPage({ title, description = '', active = '', bodyHtml, statusCode
          stil sayfasını önceliksiz yapar; font-display:swap
          sayesinde yazılar sistem yazı tipiyle anında görünür. -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap" media="print">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap"></noscript>
 
     <link rel="stylesheet" href="${asset('/css/style.css')}">
     ${extraCss ? `<link rel="stylesheet" href="${escapeHtml(extraCss.startsWith('/') ? asset(extraCss) : extraCss)}">` : ''}
-    <script>
-    /* Tema, stil sayfası yüklenmeden ÖNCE uygulanmalı.
-       Aksi halde sayfa koyu temayla boyanıp ardından beyaza
-       döner (FOUC) ve tema değişiminde ekranın sağından
-       soluna süpürme efekti bozulur. */
-    (function () {
-        try {
-            var saved = localStorage.getItem('ks-theme') || 'system';
-            var resolved = saved === 'system'
-                ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
-                : saved;
-            document.documentElement.setAttribute('data-theme', resolved);
-        } catch (e) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        }
-    })();
-    </script>
+    <script src="${asset('/js/theme-boot.js')}"></script>
 </head>
 <body>
     <a class="skip-link" href="#main">İçeriğe atla</a>

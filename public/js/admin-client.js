@@ -7,7 +7,17 @@
 (function () {
     'use strict';
 
-    const cfg = window.KS_ADMIN || {};
+    /* Yönetici oturum verisi şablon içinde JSON veri bloğu olarak
+       gelir (<script type="application/json">). Bu blok çalıştırılmaz,
+       dolayısıyla CSP "script-src" kuralını ihlal etmez. */
+    function readBootstrap() {
+        const el = document.getElementById('ks-admin-bootstrap');
+        if (!el) return {};
+        try { return JSON.parse(el.textContent || '{}'); }
+        catch { return {}; }
+    }
+
+    const cfg = readBootstrap();
     const $  = (sel, root) => (root || document).querySelector(sel);
     const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 

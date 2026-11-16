@@ -1,6 +1,7 @@
-const { escapeHtml } = require('./layout');
+const { escapeHtml, asset } = require('./layout');
 
-function renderMusteriForm(error = '') {
+function renderMusteriForm(error = '', csrfToken = '') {
+    const csrfField = csrfToken ? `<input type="hidden" name="_csrf" value="${escapeHtml(csrfToken)}">` : '';
     return `
     <main>
         <div class="page-header">
@@ -12,6 +13,7 @@ function renderMusteriForm(error = '') {
             <div class="musteri-form-card">
                 ${error ? `<div class="auth-error">${escapeHtml(error)}</div>` : ''}
                 <form method="POST" action="/musteri-formu" class="admin-form" id="musteriForm">
+                    ${csrfField}
                     <div class="form-grid">
                         <div class="form-group"><label>Ad</label><input type="text" name="firstName" id="firstName" required></div>
                         <div class="form-group"><label>Soyad</label><input type="text" name="lastName" id="lastName" required></div>
@@ -32,25 +34,7 @@ function renderMusteriForm(error = '') {
             </div>
         </div>
     </main>
-    <script>
-    (function(){
-        const requiredIds = ['firstName','lastName','age','projectName','email','phone','projectGoal','additionalInfo'];
-        const btn = document.getElementById('submitBtn');
-        const form = document.getElementById('musteriForm');
-        function check() {
-            const ok = requiredIds.every(id => {
-                const el = document.getElementById(id);
-                if (!el) return false;
-                if (el.type === 'checkbox') return el.checked;
-                return String(el.value || '').trim().length > 0;
-            });
-            btn.disabled = !ok;
-        }
-        requiredIds.forEach(id => document.getElementById(id).addEventListener('input', check));
-        // initial
-        check();
-    })();
-    </script>`;
+    <script src="${asset('/js/musteri-client.js')}" defer></script>`;
 }
 
 function renderMusteriThanks() {

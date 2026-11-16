@@ -17,6 +17,7 @@ const config = require('../../config');
 const audit = require('../../core/audit');
 const admins = require('../../core/admin-accounts');
 const totp = require('../../core/totp');
+const { createLockout } = require('../../core/login-lockout');
 const views = require('./views');
 
 const LOGIN = config.admin.loginPath;
@@ -28,22 +29,22 @@ const STEP = {
     logout:   LOGIN + '/cikis'
 };
 
-/* ── Brute-force (bellek içi, IP + kullanıcı adı) ── */
-const fails = new Map();
+/* ── Brute-force (SQLite, IP + kullanıcı adı) ──
+   Sayaç bellekte tutulursa süreç yeniden başladığında sıfırlanır
+   ve çoklu instance'lar arasında paylaşılmaz. Bu yüzden sayılar
+   data/store.js üzerinden SQLite'ta saklanır. */
 const LOCK_AFTER = 8;
 const LOCK_MS = 15 * 60 * 1000;
+const lockout = createLockout({
+    storeKey: 'admin-login-fails',
+    maxFails: LOCK_AFTER,
+    windowMs: LOCK_MS
+});
+
 function failKey(req, username) { return `${req.ip}|${username}`; }
-function noteFail(key) {
-    const now = Date.now();
-    const r = fails.get(key) || { count: 0, resetAt: now + LOCK_MS };
-    if (now > r.resetAt) { r.count = 0; r.resetAt = now + LOCK_MS; }
-    r.count++;
-    fails.set(key, r);
-}
-function isLocked(key) {
-    const r = fails.get(key);
-    return !!(r && Date.now() < r.resetAt && r.count >= LOCK_AFTER);
-}
+function noteFail(key) { return lockout.noteFail(key); }
+function isLocked(key) { return lockout.isLocked(key); }
+function clearFail(key) { return lockout.clear(key); }
 
 /* ── Oturum yardımcıları ── */
 function fingerprint(req) {
@@ -227,7 +228,7 @@ module.exports = function registerAdminAuth(app, { generateCsrf, requireCsrf }) 
             const mode = req.body?.recovery ? '&mode=recovery' : '';
             return res.redirect(STEP.verify + '?error=' + encodeURIComponent('Kod hatalı.') + mode);
         }
-        fails.delete(p.failKey);
+        clearFail(p.failKey);
         audit.log({ type: 'admin-2fa-ok', req, actorId: 'admin:' + admin.id });
         await finishLogin(req, res, admin);
     });

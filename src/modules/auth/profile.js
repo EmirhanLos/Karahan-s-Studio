@@ -89,7 +89,7 @@ function renderProfile({ user, csrf = '', tfaOn = false, messages = [] }) {
             <article class="surface danger-zone" style="padding:var(--sp-6);border-color:var(--c-bad)" data-reveal>
                 <h3 style="color:var(--c-bad);margin-bottom:var(--sp-3)">Tehlikeli Bölge</h3>
                 <p class="text-muted" style="margin-bottom:var(--sp-4)">Hesabınızı silmek geri alınamaz. Tüm verileriniz silinir.</p>
-                <form method="POST" action="/profil/sil" onsubmit="return confirm('Hesabınızı silmek istediğinizden emin misiniz? Bu geri alınamaz.');">
+                <form method="POST" action="/profil/sil" data-confirm="Hesabınızı silmek istediğinizden emin misiniz? Bu geri alınamaz.">
                     <input type="hidden" name="_csrf" value="${esc(csrf)}">
                     <button class="btn btn-danger" type="submit">Hesabımı Sil</button>
                 </form>

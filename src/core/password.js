@@ -45,8 +45,11 @@ function verify(plain, stored) {
         } catch { return false; }
     }
 
-    /* Düz metin (ilk günlerdeki hatalı kullanım) — son çare */
-    return plain === stored;
+    /* Düz metin karmalar kabul edilmez.
+       İlk günlerde yanlışlıkla saklanan düz metin parolalar
+       yalnızca hash() ile yeniden karmalanabilir; verify()
+       hiçbir koşulda düz metni kabul etmez. */
+    return false;
 }
 
 function needsRehash(stored) {

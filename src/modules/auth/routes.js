@@ -12,6 +12,7 @@ const firebaseAuth = require('../../core/firebase-auth');
 const firestoreAdmin = require('../../core/firestore-admin');
 const totp = require('../../core/totp');
 const audit = require('../../core/audit');
+const { createLockout } = require('../../core/login-lockout');
 const data = require('../../data');
 
 const RECOVERY_COUNT = 10;
@@ -89,20 +90,17 @@ function consumeRecoveryCode(userId, code) {
     return true;
 }
 
-/* ── Brute-force için basit sayaç ── */
-const failStore = new Map();
-function noteFail(key) {
-    const now = Date.now();
-    const r = failStore.get(key) || { count: 0, resetAt: now + 15 * 60 * 1000 };
-    if (now > r.resetAt) r.count = 0, r.resetAt = now + 15 * 60 * 1000;
-    r.count++;
-    failStore.set(key, r);
-    return r;
-}
-function isLocked(key) {
-    const r = failStore.get(key);
-    return r && Date.now() < r.resetAt && r.count >= 10;
-}
+/* ── Brute-force için sayaç ──
+   Yönetici girişi ile aynı gerekçe: sayaç bellekte tutulursa
+   yeniden başlatma ile sıfırlanır. SQLite'ta saklanır. */
+const lockout = createLockout({
+    storeKey: 'login-fails',
+    maxFails: 10,
+    windowMs: 15 * 60 * 1000
+});
+function noteFail(key) { return lockout.noteFail(key); }
+function isLocked(key) { return lockout.isLocked(key); }
+function clearFail(key) { return lockout.clear(key); }
 
 module.exports = function (app, { generateCsrf, requireCsrf }) {
     const csrf = () => generateCsrf(app.request?._session) || null; // fall-through; csrf from session
@@ -170,7 +168,7 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
             audit.log({ type: 'login-account-mismatch', req, actorId: user.id });
             return res.status(403).send('Bu hesap Firebase Authentication ile eşleşmiyor. Destek ekibiyle iletişime geçin.');
         }
-        failStore.delete(key);
+        clearFail(key);
         user.firebaseUid = authUser.uid;
         delete user.password;
         try {

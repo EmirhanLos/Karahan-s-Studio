@@ -1,4 +1,4 @@
-const { escapeHtml } = require('./layout');
+const { escapeHtml, asset } = require('./layout');
 const { iconSvg } = require('./icons');
 const { renderCardGrid } = require('./cards');
 
@@ -32,69 +32,7 @@ function renderRatingWidget(project) {
         </div>
         <p class="rating-msg" id="ratingMsg"></p>
     </div>
-    <script>
-    (function() {
-        const container   = document.getElementById('starInput');
-        const msg         = document.getElementById('ratingMsg');
-        const starsEl     = document.getElementById('ratingStars');
-        const valueEl     = document.getElementById('ratingValue');
-        const countEl     = document.getElementById('ratingCount');
-        if (!container) return;
-        const btns = container.querySelectorAll('.star-btn');
-        const pid  = container.dataset.projectId;
-
-        /* Yıldızları güncelle */
-        function updateStarsDisplay(rating, ratingCount) {
-            const full  = Math.floor(rating);
-            const half  = (rating - full) >= 0.5 ? 1 : 0;
-            const empty = 5 - full - half;
-            starsEl.textContent = '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
-            valueEl.textContent = rating.toFixed(1);
-            countEl.textContent = '(' + ratingCount + ' değerlendirme)';
-            /* Buton renklerini de güncelle */
-            btns.forEach((b, i) => {
-                b.style.color = i < Math.round(rating) ? '#facc15' : '';
-            });
-        }
-
-        /* Hover efekti */
-        btns.forEach((btn, i) => {
-            btn.addEventListener('mouseenter', () => {
-                btns.forEach((b, j) => b.classList.toggle('hovered', j <= i));
-            });
-        });
-        container.addEventListener('mouseleave', () => {
-            btns.forEach(b => b.classList.remove('hovered'));
-        });
-
-        /* Tıklama → API → DOM güncelle */
-        btns.forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const rating = Number(btn.dataset.value);
-                try {
-                    const res  = await fetch('/api/projects/' + pid + '/rate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ rating })
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                        updateStarsDisplay(data.rating, data.ratingCount);
-                        msg.textContent = 'Puanın kaydedildi!';
-                        msg.className   = 'rating-msg rating-msg--ok';
-                        btns.forEach(b => { b.disabled = true; b.style.cursor = 'default'; });
-                    } else {
-                        msg.textContent = data.error || 'Bir hata oluştu.';
-                        msg.className   = 'rating-msg rating-msg--err';
-                    }
-                } catch {
-                    msg.textContent = 'Bağlantı hatası.';
-                    msg.className   = 'rating-msg rating-msg--err';
-                }
-            });
-        });
-    })();
-    </script>`;
+    <script src="${asset('/js/urun-rating.js')}" defer></script>`;
 }
 
 

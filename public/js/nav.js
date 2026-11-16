@@ -361,4 +361,27 @@
             location.href = href;
         });
     });
+
+    /* ── Site Kapanış ve Aktiflik Takibi ── */
+    let isInternalNavigation = false;
+
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[href]');
+        if (!link) return;
+        const href = link.getAttribute('href') || '';
+        if (href.startsWith('/') || href.startsWith(location.origin)) {
+            isInternalNavigation = true;
+        }
+    }, true);
+
+    document.addEventListener('submit', () => {
+        isInternalNavigation = true;
+    }, true);
+
+    fetch('/api/track/active', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+
+    window.addEventListener('pagehide', () => {
+        if (isInternalNavigation) return;
+        navigator.sendBeacon('/api/track/exit');
+    });
 })();

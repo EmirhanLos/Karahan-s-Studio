@@ -133,58 +133,19 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
         });
     }
 
-    function requiredString(v) { return typeof v === 'string' && v.trim().length > 0; }
-    const productValidate = (b) => {
-        if (!requiredString(b.name)) return { ok: false, error: 'Ürün adı zorunlu' };
-        const price = Number(b.price ?? 0), discount = Number(b.discount ?? 0), couponDiscount = Number(b.couponDiscount ?? 0);
-        if (!Number.isFinite(price) || price < 0) return { ok: false, error: 'Fiyat sıfır veya daha büyük olmalı' };
-        if (!Number.isFinite(discount) || discount < 0 || discount > 100) return { ok: false, error: 'İndirim %0 ile %100 arasında olmalı' };
-        if (!Number.isFinite(couponDiscount) || couponDiscount < 0 || couponDiscount > 100) return { ok: false, error: 'Kupon indirimi %0 ile %100 arasında olmalı' };
-        if (b.image && (typeof b.image !== 'string' || b.image.length > 2048)) return { ok: false, error: 'Görsel adresi geçersiz' };
-        let file = null;
-        if (b.file && typeof b.file === 'object' && !Array.isArray(b.file)) {
-            const stored = String(b.file.stored || '');
-            if (!/^[A-Za-z0-9._-]+$/.test(stored) || stored.includes('..')) return { ok: false, error: 'Ürün dosyası referansı geçersiz' };
-            file = {
-                name: String(b.file.name || stored).slice(0, 255),
-                stored,
-                size: Number(b.file.size) || 0,
-                type: String(b.file.type || 'application/octet-stream').slice(0, 100),
-                uploadedAt: b.file.uploadedAt || new Date().toISOString()
-            };
-        }
-        return { ok: true, value: {
-            name: b.name.trim(), category: b.category || 'Araç', status: b.status || 'Yayında',
-            summary: b.summary || b.description || '', tagline: b.tagline || '', description: b.description || '',
-            price, discount, image: b.image || '', couponCode: b.couponCode || '',
-            couponDiscount, isFree: b.isFree === true || b.isFree === 'true', features: b.features || [], stack: b.stack || [],
-            platforms: b.platforms || [], tags: b.tags || [], file
-        } };
-    };
+    const { productValidate, upcomingValidate, isSafeImageUrl, requiredString } = require('./validation');
+    /* Güncelleme doğrulayıcısı ürün kaydına erişmesi gerektiği için
+       burada kalır; görsel şeması kontrolü validation.js ile ortak. */
     const updateValidate = (b) => {
         if (!requiredString(b.title)) return { ok: false, error: 'Güncelleme başlığı zorunlu' };
         if (!b.productId) return { ok: false, error: 'Bir ürün seçin' };
         const project = data.projectById(b.productId);
         if (!project) return { ok: false, error: 'Ürün bulunamadı' };
-        if (b.image && (typeof b.image !== 'string' || b.image.length > 2048)) return { ok: false, error: 'Görsel adresi geçersiz' };
+        if (b.image && !isSafeImageUrl(b.image)) return { ok: false, error: 'Görsel adresi geçersiz' };
         return { ok: true, value: {
             title: b.title.trim(), version: b.version || '', date: b.date || '',
             description: b.description || '', productId: project.id,
             projectName: project.name, image: b.image || ''
-        } };
-    };
-    const upcomingValidate = (b) => {
-        if (!requiredString(b.name)) return { ok: false, error: 'Ad zorunlu' };
-        if (!['Yayınlandı', 'Geliştirmede'].includes(b.status || 'Geliştirmede')) {
-            return { ok: false, error: 'Durum Yayınlandı veya Geliştirmede olmalı' };
-        }
-        const price = Number(b.price ?? 0);
-        if (!Number.isFinite(price) || price < 0) return { ok: false, error: 'Fiyat sıfır veya daha büyük olmalı' };
-        if (b.image && (typeof b.image !== 'string' || b.image.length > 2048)) return { ok: false, error: 'Görsel adresi geçersiz' };
-        return { ok: true, value: {
-            name: b.name.trim(), status: b.status || 'Geliştirmede',
-            description: b.description || '', launchDate: b.launchDate || '',
-            price, image: b.image || '', featured: b.featured === true || b.featured === 'true'
         } };
     };
     const messageValidate = (b) => b.id ? { ok: true, value: b } : { ok: false, error: 'ID eksik' };
@@ -195,6 +156,16 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
 
     /* ── Ürün dosyası yükleme (cihazdan) ── */
     const UPLOAD_DIR = path.join(__dirname, '..', '..', '..', 'data', 'uploads', 'products');
+
+    /* Yalnızca beyaz listedeki uzantı ve MIME türleri kabul edilir.
+       Arayüz dışından gelen bir dosya adı (.html, .js, .php …)
+       sunucuya yazılırsa uzaktan kod çalıştırma riski doğar. */
+    const {
+        ALLOWED_UPLOAD_EXTENSIONS,
+        isAllowedUpload,
+        uploadRejectedMessage
+    } = require('./upload-policy');
+
     const productUpload = multer({
         storage: multer.diskStorage({
             destination: (req, file, cb) => {
@@ -206,7 +177,13 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
                 cb(null, crypto.randomBytes(8).toString('hex') + ext);
             }
         }),
-        limits: { fileSize: 500 * 1024 * 1024 }
+        limits: { fileSize: 500 * 1024 * 1024 },
+        fileFilter: (req, file, cb) => {
+            if (!isAllowedUpload(file.originalname, file.mimetype)) {
+                return cb(new Error(uploadRejectedMessage()));
+            }
+            cb(null, true);
+        }
     });
 
     app.post('/admin/api/products/upload', requireAdminApi, requireCsrf, (req, res) => {

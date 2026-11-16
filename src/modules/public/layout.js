@@ -182,12 +182,12 @@ function renderPage({ title, description, body, current = '', user = null, og = 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-    <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="${esc(asset('/css/style.css'))}">
     <link rel="stylesheet" href="${esc(asset('/css/liquid-glass.css'))}">
     <link rel="stylesheet" href="${esc(asset('/css/nav-lens.css'))}">
     <link rel="stylesheet" href="${esc(asset('/css/mobile.css'))}">
-    <script>document.documentElement.classList.remove('no-js');</script>
+    <script src="${esc(asset('/js/boot.js'))}"></script>
 </head>
 <body class="site-shell">
     <div class="scroll-progress" aria-hidden="true"></div>

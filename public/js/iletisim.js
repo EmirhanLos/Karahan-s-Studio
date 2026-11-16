@@ -1,6 +1,7 @@
 const { escapeHtml } = require('./layout');
 
-function renderIletisim(sent = false, error = false) {
+function renderIletisim(sent = false, error = false, csrfToken = '') {
+    const csrfField = csrfToken ? `<input type="hidden" name="_csrf" value="${escapeHtml(csrfToken)}">` : '';
     return `
     <main>
         <div class="page-header">
@@ -83,6 +84,7 @@ function renderIletisim(sent = false, error = false) {
                 <h2 class="iletisim-form-title">Mesaj Gönder</h2>
 
                 <form method="POST" action="/iletisim" class="admin-form iletisim-form">
+                    ${csrfField}
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Ad Soyad</label>

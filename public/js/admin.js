@@ -2,8 +2,12 @@ const fs   = require('fs');
 const path = require('path');
 
 const projectsJs       = require('./projects');
-const users            = require('../../data/users.json');
+const { asset }        = require('./layout');
+/* Veri katmanı JSON dosyalarından SQLite'a taşındı; bu şablon da
+   aynı depoyu kullanır (data/ dizini repoda tutulmaz). */
+const data             = require('../../src/data');
 
+/* Eski JSON dosya yolları — SQLite'a geçiş sonrası kullanılmıyor. */
 const TRANSACTIONS_FILE = path.join(__dirname, '../../data/transactions.json');
 const UPDATES_FILE      = path.join(__dirname, '../../data/updates.json');
 const UPCOMING_FILE     = path.join(__dirname, '../../data/upcoming-projects.json');
@@ -26,7 +30,7 @@ function escapeHtml(str) {
 
 /* ─── İstatistik hesaplama ─── */
 function calculateStats() {
-    const tx  = readJson(TRANSACTIONS_FILE);
+    const tx  = data.transactions();
     const now = new Date();
 
     function from(y, m, d) { return new Date(now.getFullYear()+y, now.getMonth()+m, now.getDate()+d); }
@@ -40,7 +44,7 @@ function calculateStats() {
     const monthI  = sumI(thisMonth); const monthE  = sumE(thisMonth);
 
     return {
-        totalUsers: readJson(path.join(__dirname,'../../data/users.json')).length,
+        totalUsers: data.users().length,
         daily:   { income: dailyI, expense: dailyE, profit: dailyI - dailyE },
         monthly: { income: monthI, expense: monthE, profit: monthI - monthE },
         revenue: {
@@ -55,7 +59,7 @@ function calculateStats() {
 
 /* ─── Çizgi grafik verisi (son 12 ay) ─── */
 function buildChartData() {
-    const tx  = readJson(TRANSACTIONS_FILE);
+    const tx  = data.transactions();
     const now = new Date();
     const labels=[], incomes=[], expenses=[];
     for (let i=11; i>=0; i--) {
@@ -130,12 +134,11 @@ function buildLineChart(chart) {
 function renderAdminDashboard({ email, users, security } = {}) {
     const stats   = calculateStats();
     const chart   = buildChartData();
-    const updates = readJson(UPDATES_FILE);
-    const upcoming= readJson(UPCOMING_FILE);
+    const updates = data.updates();
+    const upcoming= data.upcoming();
     const freshUsers = users || [];
-    const messages = readJson(MESSAGES_FILE);
-    const db = require('../../db.js');
-    const inboxForms = db.getEncryptedData('inbox_forms') || [];
+    const messages = data.messages();
+    const inboxForms = data.forms() || [];
 
     // Ensure adminUser is defined for templates (server passes email)
     const adminUser = { email: email || '' };
@@ -237,9 +240,10 @@ function renderAdminDashboard({ email, users, security } = {}) {
                             <td class="${t.type==='income'?'positive':'negative'}" id="tx-amt-${t.id}">${fmt(t.amount)}</td>
                             <td id="tx-desc-${t.id}">${t.description||'—'}</td>
                             <td style="display:flex;gap:.4rem;flex-wrap:wrap">
-                                <button onclick="editTx('${t.id}','${t.type}',${t.amount},'${(t.description||'').replace(/'/g,"\\'")}','${t.date}')"
+                                <button data-action="editTx"
+                                    data-action-args="'${t.id}','${t.type}',${t.amount},'${(t.description||'').replace(/'/g,"\\'")}','${t.date}'"
                                     class="btn-admin btn-admin-secondary btn-admin-sm">Düzenle</button>
-                                <button onclick="deleteTx('${t.id}')"
+                                <button data-action="deleteTx" data-action-args="'${t.id}'"
                                     class="btn-admin btn-admin-danger btn-admin-sm">Sil</button>
                             </td>
                         </tr>`).join('')}
@@ -249,9 +253,9 @@ function renderAdminDashboard({ email, users, security } = {}) {
         </div>
 
         <!-- İşlem Düzenleme Modal -->
-        <div class="uc-modal-overlay" id="txModalOverlay" style="display:none" onclick="closeTxModal(event)">
+        <div class="uc-modal-overlay" id="txModalOverlay" style="display:none">
             <div class="uc-modal" style="max-width:440px">
-                <button class="uc-modal-close" onclick="closeTxModal()" aria-label="Kapat">✕</button>
+                <button class="uc-modal-close" data-action="closeTxModal" aria-label="Kapat">✕</button>
                 <h3 style="font-family:var(--font-display);font-size:1.1rem;margin-bottom:1.25rem">İşlemi Düzenle</h3>
                 <form class="admin-form" id="editTxForm">
                     <input type="hidden" id="editTxId">
@@ -293,7 +297,7 @@ function renderAdminDashboard({ email, users, security } = {}) {
                             <td>${p.rating>0?'★ '+p.rating.toFixed(1)+' ('+p.ratingCount+')':'—'}</td>
                             <td style="display:flex;gap:.4rem;flex-wrap:wrap">
                                 <a href="/admin/products/edit/${p.id}" class="btn-admin btn-admin-secondary btn-admin-sm">Düzenle</a>
-                                <form method="POST" action="/admin/products/delete/${p.id}" style="display:inline" onsubmit="return confirm('Bu ürünü silmek istediğine emin misin?')">
+                                <form method="POST" action="/admin/products/delete/${p.id}" style="display:inline" data-confirm="Bu ürünü silmek istediğine emin misin?">
                                     <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">Sil</button>
                                 </form>
                             </td>
@@ -321,7 +325,7 @@ function renderAdminDashboard({ email, users, security } = {}) {
                             <td>${p.price?fmt(p.price):'—'}</td>
                             <td style="display:flex;gap:.4rem;flex-wrap:wrap">
                                 <a href="/admin/upcoming/edit/${p.id}" class="btn-admin btn-admin-secondary btn-admin-sm">Düzenle</a>
-                                <form method="POST" action="/admin/upcoming/delete/${p.id}" style="display:inline" onsubmit="return confirm('Silmek istediğine emin misin?')">
+                                <form method="POST" action="/admin/upcoming/delete/${p.id}" style="display:inline" data-confirm="Silmek istediğine emin misin?">
                                     <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">Sil</button>
                                 </form>
                             </td>
@@ -347,9 +351,9 @@ function renderAdminDashboard({ email, users, security } = {}) {
                             <td><span class="badge ${u.banned?'badge-banned':'badge-active'}">${u.banned?'Banlı':'Aktif'}</span></td>
                             <td style="display:flex;gap:.4rem;flex-wrap:wrap">
                                 ${!u.banned
-                                    ?`<button onclick="banUser('${u.id}')" class="btn-admin btn-admin-danger btn-admin-sm">Banla</button>`
-                                    :`<button onclick="unbanUser('${u.id}')" class="btn-admin btn-admin-secondary btn-admin-sm">Ban Kaldır</button>`}
-                                <button onclick="banIP('${u.ip}')" class="btn-admin btn-admin-danger btn-admin-sm">IP Banla</button>
+                                    ?`<button data-action="banUser" data-action-args="'${u.id}'" class="btn-admin btn-admin-danger btn-admin-sm">Banla</button>`
+                                    :`<button data-action="unbanUser" data-action-args="'${u.id}'" class="btn-admin btn-admin-secondary btn-admin-sm">Ban Kaldır</button>`}
+                                <button data-action="banIP" data-action-args="'${u.ip}'" class="btn-admin btn-admin-danger btn-admin-sm">IP Banla</button>
                             </td>
                         </tr>`).join('')}
                     </tbody>
@@ -379,7 +383,7 @@ function renderAdminDashboard({ email, users, security } = {}) {
                             <td>${u.dateDisplay}</td>
                             <td style="display:flex;gap:.4rem;flex-wrap:wrap">
                                 <a href="/admin/updates/edit/${u.id}" class="btn-admin btn-admin-secondary btn-admin-sm">Düzenle</a>
-                                <form method="POST" action="/admin/updates/delete/${u.id}" style="display:inline" onsubmit="return confirm('Silmek istediğine emin misin?')">
+                                <form method="POST" action="/admin/updates/delete/${u.id}" style="display:inline" data-confirm="Silmek istediğine emin misin?">
                                     <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">Sil</button>
                                 </form>
                             </td>
@@ -406,9 +410,9 @@ function renderAdminDashboard({ email, users, security } = {}) {
                             <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.subject}</td>
                             <td><span class="badge ${m.status==='unread'?'badge-active':'badge-banned'}">${m.status==='unread'?'Okunmamış':'Okundu'}</span></td>
                             <td style="display:flex;gap:.4rem;flex-wrap:wrap">
-                                <button onclick="viewMessage('${m.id}')" class="btn-admin btn-admin-secondary btn-admin-sm">Görüntüle</button>
-                                <button onclick="replyToMessage('${m.id}')" class="btn-admin btn-admin-primary btn-admin-sm">Yanıtla</button>
-                                <form method="POST" action="/admin/messages/delete/${m.id}" style="display:inline" onsubmit="return confirm('Silmek istediğine emin misin?')">
+                                <button data-action="viewMessage" data-action-args="'${m.id}'" class="btn-admin btn-admin-secondary btn-admin-sm">Görüntüle</button>
+                                <button data-action="replyToMessage" data-action-args="'${m.id}'" class="btn-admin btn-admin-primary btn-admin-sm">Yanıtla</button>
+                                <form method="POST" action="/admin/messages/delete/${m.id}" style="display:inline" data-confirm="Silmek istediğine emin misin?">
                                     <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">Sil</button>
                                 </form>
                             </td>
@@ -436,8 +440,8 @@ function renderAdminDashboard({ email, users, security } = {}) {
                             <td>${f.phone||'—'}</td>
                             <td><span class="badge ${f.status==='new'?'badge-active':'badge-banned'}">${f.status==='new'?'Yeni':f.status}</span></td>
                             <td style="display:flex;gap:.4rem;flex-wrap:wrap">
-                                <button onclick="viewForm('${f.id}')" class="btn-admin btn-admin-secondary btn-admin-sm">Görüntüle</button>
-                                <button onclick="replyToForm('${f.id}')" class="btn-admin btn-admin-primary btn-admin-sm">Yanıtla</button>
+                                <button data-action="viewForm" data-action-args="'${f.id}'" class="btn-admin btn-admin-secondary btn-admin-sm">Görüntüle</button>
+                                <button data-action="replyToForm" data-action-args="'${f.id}'" class="btn-admin btn-admin-primary btn-admin-sm">Yanıtla</button>
                                 <a href="/musteri-form/${f.token}" target="_blank" class="btn-admin btn-admin-secondary btn-admin-sm">Açık Link</a>
                             </td>
                         </tr>`).join('') : '<tr><td colspan="7" style="color:var(--text-faint);text-align:center;padding:1.5rem">Henüz müşteri formu yok.</td></tr>'}
@@ -450,293 +454,7 @@ function renderAdminDashboard({ email, users, security } = {}) {
     </div><!-- /tab-panels -->
 </div>
 
-<script>
-/* Sekme geçişi */
-(function(){
-    const tabs  = document.querySelectorAll('.admin-tab');
-    const panels= document.querySelectorAll('.tab-panel');
-    
-    // Ensure initial state is correct
-    panels.forEach((p, i) => {
-        if (p.classList.contains('active')) {
-            p.style.display = 'block';
-        } else {
-            p.style.display = 'none';
-        }
-    });
-    
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.preventDefault();
-            const tabId = tab.dataset.tab;
-            if (!tabId) return;
-            
-            // Remove active from all tabs and panels
-            tabs.forEach(t => t.classList.remove('active'));
-            panels.forEach(p => {
-                p.classList.remove('active');
-                p.style.display = 'none';
-            });
-            
-            // Add active to clicked tab and corresponding panel
-            tab.classList.add('active');
-            const panel = document.getElementById(tabId);
-            if (panel) {
-                panel.classList.add('active');
-                panel.style.display = 'block';
-            }
-        });
-    });
-})();
-
-/* Gelir/gider form */
-(function(){
-    const form=document.getElementById('addTransactionForm');
-    if(!form) return;
-    form.addEventListener('submit',async e=>{
-        e.preventDefault();
-        const msg=document.getElementById('txMsg');
-        const data={type:document.getElementById('txType').value,amount:document.getElementById('txAmount').value,description:document.getElementById('txDesc').value};
-        try{
-            const res=await fetch('/api/admin/transactions/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-            const json=await res.json();
-            if(res.ok){msg.textContent='Kaydedildi!';msg.className='tx-msg tx-msg--ok';form.reset();setTimeout(()=>location.reload(),800);}
-            else{msg.textContent=json.error||'Hata.';msg.className='tx-msg tx-msg--err';}
-        }catch{msg.textContent='Bağlantı hatası.';msg.className='tx-msg tx-msg--err';}
-    });
-})();
-
-async function banUser(id){if(!confirm('Banlamak istediğine emin misin?'))return;const r=await fetch('/api/admin/users/ban',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:id})});if(r.ok)location.reload();}
-async function unbanUser(id){const r=await fetch('/api/admin/users/unban',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:id})});if(r.ok)location.reload();}
-async function banIP(ip){if(!confirm(ip+' adresini banlamak istediğine emin misin?'))return;const r=await fetch('/api/admin/ips/ban',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip})});if(r.ok)alert('IP banlandi.');}
-
-/* ── Gelir/Gider düzenle/sil ── */
-function editTx(id, type, amount, desc, date) {
-    document.getElementById('editTxId').value     = id;
-    document.getElementById('editTxType').value   = type;
-    document.getElementById('editTxAmount').value = amount;
-    document.getElementById('editTxDesc').value   = desc;
-    var overlay = document.getElementById('txModalOverlay');
-    overlay.style.display = 'flex';
-    setTimeout(function(){ overlay.classList.add('uc-modal-open'); }, 10);
-    document.body.style.overflow = 'hidden';
-}
-function closeTxModal(e) {
-    if (e && e.target !== document.getElementById('txModalOverlay')) return;
-    var overlay = document.getElementById('txModalOverlay');
-    overlay.classList.remove('uc-modal-open');
-    setTimeout(function(){ overlay.style.display='none'; }, 220);
-    document.body.style.overflow = '';
-}
-(function(){
-    var form = document.getElementById('editTxForm');
-    if (!form) return;
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        var id   = document.getElementById('editTxId').value;
-        var msg  = document.getElementById('editTxMsg');
-        var data = {
-            type:        document.getElementById('editTxType').value,
-            amount:      parseFloat(document.getElementById('editTxAmount').value),
-            description: document.getElementById('editTxDesc').value
-        };
-        var res  = await fetch('/api/admin/transactions/'+id, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-        var json = await res.json();
-        if (res.ok) {
-            msg.textContent='Kaydedildi!'; msg.className='tx-msg tx-msg--ok';
-            setTimeout(function(){ location.reload(); }, 600);
-        } else {
-            msg.textContent = json.error||'Hata.'; msg.className='tx-msg tx-msg--err';
-        }
-    });
-})();
-async function deleteTx(id) {
-    if (!confirm('Bu işlemi silmek istediğine emin misin?')) return;
-    var res = await fetch('/api/admin/transactions/'+id, {method:'DELETE'});
-    if (res.ok) {
-        var row = document.getElementById('tx-'+id);
-        if (row) row.remove();
-    } else {
-        alert('Silinemedi.');
-    }
-}
-
-/* ── HTML kaçışlama (görüntülenen veriler için) ── */
-function escapeHtml(str) {
-    return String(str == null ? '' : str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-/* ── Mesaj görüntüle/yanıtla ── */
-function viewMessage(id) {
-    fetch('/api/admin/messages/'+id)
-        .then(res => res.json())
-        .then(msg => {
-            if (!msg) return;
-            
-            // Create view modal with message details
-            const modalHtml = '<div class="uc-modal-overlay" id="viewModalOverlay" style="display:flex"><div class="uc-modal" style="max-width:700px"><button class="uc-modal-close" onclick="closeViewModal()" aria-label="Kapat">✕</button><h3 style="font-family:var(--font-display);font-size:1.2rem;margin-bottom:1rem">Mesaj Detayları</h3><div class="message-details" style="background:var(--surface-2);padding:1.5rem;border-radius:8px;margin-bottom:1.5rem;border:1px solid var(--border)"><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem"><div><strong>Gönderen:</strong> ' + escapeHtml(msg.name) + '</div><div><strong>E-posta:</strong> ' + escapeHtml(msg.email) + '</div><div><strong>Konu:</strong> ' + escapeHtml(msg.subject) + '</div><div><strong>Tarih:</strong> ' + escapeHtml(new Date(msg.date).toLocaleString('tr-TR')) + '</div></div><div style="padding-top:1rem;border-top:1px solid var(--border)"><strong>Mesaj:</strong><p style="color:var(--text);margin-top:0.5rem;line-height:1.6;white-space:pre-wrap">' + escapeHtml(msg.message) + '</p></div></div><div style="display:flex;gap:0.75rem"><button onclick="closeViewModal();replyToMessage(\''+id+'\')" class="btn-admin btn-admin-primary">Yanıtla</button><button onclick="closeViewModal()" class="btn-admin btn-admin-secondary">Kapat</button></div></div></div>';
-            
-            // Add modal to page
-            const existingModal = document.getElementById('viewModalOverlay');
-            if (existingModal) existingModal.remove();
-            
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            document.body.style.overflow = 'hidden';
-            
-            // Mark as read
-            fetch('/api/admin/messages/'+id+'/read', {method:'POST'});
-        })
-        .catch(() => alert('Mesaj yüklenemedi.'));
-}
-
-function closeViewModal() {
-    const modal = document.getElementById('viewModalOverlay');
-    if (modal) {
-        modal.remove();
-        document.body.style.overflow = '';
-    }
-}
-
-function replyToMessage(id) {
-    // Fetch message details to get contact info
-    fetch('/api/admin/messages/'+id)
-        .then(res => res.json())
-        .then(msg => {
-            if (!msg) return;
-            
-            // Create reply modal with user contact info
-            const modalHtml = '<div class="uc-modal-overlay" id="replyModalOverlay" style="display:flex"><div class="uc-modal" style="max-width:600px"><button class="uc-modal-close" onclick="closeReplyModal()" aria-label="Kapat">✕</button><h3 style="font-family:var(--font-display);font-size:1.2rem;margin-bottom:1rem">Mesaja Yanıtla</h3><div class="reply-contact-info" style="background:var(--surface-2);padding:1rem;border-radius:8px;margin-bottom:1.5rem;border:1px solid var(--border)"><h4 style="font-size:0.9rem;color:var(--text-faint);margin-bottom:0.75rem;text-transform:uppercase;letter-spacing:0.05em">İletişim Bilgileri</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;font-size:0.9rem"><div><strong>Ad Soyad:</strong> ' + escapeHtml(msg.name) + '</div><div><strong>E-posta:</strong> ' + escapeHtml(msg.email) + '</div><div><strong>Konu:</strong> ' + escapeHtml(msg.subject) + '</div><div><strong>Tarih:</strong> ' + escapeHtml(new Date(msg.date).toLocaleString('tr-TR')) + '</div></div><div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--border)"><strong>Orijinal Mesaj:</strong><p style="color:var(--text-dim);margin-top:0.25rem;line-height:1.5">' + escapeHtml(msg.message) + '</p></div></div><form id="replyForm"><div class="form-group"><label>Yanıt Mesajı</label><textarea id="replyMessageText" rows="5" required placeholder="Yanıtınızı buraya yazın..."></textarea></div><div style="display:flex;gap:0.75rem;margin-top:1rem"><button type="submit" class="btn-admin btn-admin-primary">Gönder</button><button type="button" onclick="closeReplyModal()" class="btn-admin btn-admin-secondary">İptal</button></div></form></div></div>';
-            
-            // Add modal to page
-            const existingModal = document.getElementById('replyModalOverlay');
-            if (existingModal) existingModal.remove();
-            
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            document.body.style.overflow = 'hidden';
-            
-            // Handle form submission
-            document.getElementById('replyForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const replyMessage = document.getElementById('replyMessageText').value;
-                const submitBtn = this.querySelector('button[type="submit"]');
-                
-                // Disable button and show loading state
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Gönderiliyor...';
-                
-                fetch('/api/admin/messages/reply', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ to: msg.email, message: replyMessage })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Yanıt gönderildi!');
-                        closeReplyModal();
-                        // Mark as read
-                        fetch('/api/admin/messages/'+id+'/read', {method:'POST'})
-                            .then(() => location.reload());
-                    } else {
-                        alert('Hata: ' + (data.error || 'Bilinmeyen hata'));
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Gönder';
-                    }
-                })
-                .catch(() => {
-                    alert('Bağlantı hatası.');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Gönder';
-                });
-            });
-        })
-        .catch(() => alert('Mesaj yüklenemedi.'));
-}
-
-function closeReplyModal() {
-    const modal = document.getElementById('replyModalOverlay');
-    if (modal) {
-        modal.remove();
-        document.body.style.overflow = '';
-    }
-}
-
-/* ── Müşteri formu görüntüle/yanıtla ── */
-function viewForm(id) {
-    fetch('/api/admin/musteri-form/' + encodeURIComponent(id))
-        .then(res => res.json())
-        .then(f => {
-            if (!f) return;
-            const modalHtml = '<div class="uc-modal-overlay" id="viewFormOverlay" style="display:flex"><div class="uc-modal" style="max-width:720px"><button class="uc-modal-close" onclick="closeViewForm()" aria-label="Kapat">✕</button><h3 style="font-family:var(--font-display);font-size:1.2rem;margin-bottom:1rem">Müşteri Formu</h3>' +
-                '<div class="message-details" style="background:var(--surface-2);padding:1.5rem;border-radius:8px;margin-bottom:1.5rem;border:1px solid var(--border)">' +
-                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">' +
-                '<div><strong>Gönderen:</strong> ' + escapeHtml(f.firstName) + ' ' + escapeHtml(f.lastName) + '</div>' +
-                '<div><strong>E-posta:</strong> ' + escapeHtml(f.email||'—') + '</div>' +
-                '<div><strong>Telefon:</strong> ' + escapeHtml(f.phone||'—') + '</div>' +
-                '<div><strong>Yaş:</strong> ' + escapeHtml(f.age||'—') + '</div></div>' +
-                '<div style="margin-top:.5rem"><strong>Proje:</strong><p style="color:var(--text-dim)">' + escapeHtml(f.projectName) + '</p></div>' +
-                '<div style="margin-top:.5rem"><strong>Proje Amacı:</strong><p style="color:var(--text-dim)">' + escapeHtml(f.projectGoal) + '</p></div>' +
-                '<div style="margin-top:.5rem"><strong>Ek Bilgiler:</strong><p style="color:var(--text-dim)">' + escapeHtml(f.additionalInfo||'—') + '</p></div>' +
-                '</div>' +
-                '<div style="display:flex;gap:0.75rem"><button onclick="closeViewForm();replyToForm(\'' + id + '\')" class="btn-admin btn-admin-primary">Yanıtla</button><button onclick="closeViewForm()" class="btn-admin btn-admin-secondary">Kapat</button></div>' +
-                '</div></div></div>';
-            const existing = document.getElementById('viewFormOverlay'); if (existing) existing.remove();
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            document.body.style.overflow = 'hidden';
-        })
-        .catch(() => alert('Form yüklenemedi.'));
-}
-
-function closeViewForm() {
-    const m = document.getElementById('viewFormOverlay'); if (m) { m.remove(); document.body.style.overflow = ''; }
-}
-
-function replyToForm(id) {
-    // Fetch form details to get contact info (avoids embedding raw text in onclick attributes)
-    fetch('/api/admin/musteri-form/' + encodeURIComponent(id))
-        .then(res => res.json())
-        .then(f => {
-            if (!f) return;
-            if (!f.email) { alert('Bu kullanıcıya e-posta ile yanıt verilemez (e-posta adresi yok).'); return; }
-
-            const modalHtml = '<div class="uc-modal-overlay" id="replyFormOverlay" style="display:flex"><div class="uc-modal" style="max-width:600px">' +
-                '<button class="uc-modal-close" onclick="closeReplyForm()" aria-label="Kapat">✕</button>' +
-                '<h3 style="font-family:var(--font-display);font-size:1.2rem;margin-bottom:1rem">Müşteriye Yanıt Gönder</h3>' +
-                '<div class="reply-contact-info" style="background:var(--surface-2);padding:1rem;border-radius:8px;margin-bottom:1.25rem;border:1px solid var(--border)"><div><strong>' + escapeHtml(f.firstName + ' ' + f.lastName) + '</strong></div><div style="color:var(--text-faint);font-size:.9rem">' + escapeHtml(f.email||'—') + '</div></div>' +
-                '<form id="replyForm" class="admin-form">' +
-                '<div class="form-group"><label>Konu</label><input type="text" id="replySubject" placeholder="Konu (opsiyonel)"></div>' +
-                '<div class="form-group"><label>Mesaj</label><textarea id="replyMessageText" rows="6" required placeholder="Yanıtınız..."></textarea></div>' +
-                '<div style="display:flex;gap:.75rem;margin-top:.5rem"><button type="submit" class="btn-admin btn-admin-primary">Gönder</button><button type="button" class="btn-admin btn-admin-secondary" onclick="closeReplyForm()">İptal</button></div>' +
-                '</form></div></div>';
-            const existing = document.getElementById('replyFormOverlay'); if (existing) existing.remove();
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            document.body.style.overflow = 'hidden';
-
-            document.getElementById('replyForm').addEventListener('submit', function(e){
-                e.preventDefault();
-                const subj = document.getElementById('replySubject').value;
-                const msg = document.getElementById('replyMessageText').value;
-                const btn = this.querySelector('button[type="submit"]');
-                btn.disabled = true; btn.textContent = 'Gönderiliyor...';
-                fetch('/api/admin/musteri-form/'+encodeURIComponent(id)+'/reply', {
-                    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ subject: subj, message: msg })
-                }).then(r=>r.json()).then(j=>{
-                    if (j.success) { alert('Yanıt gönderildi.'); closeReplyForm(); location.reload(); }
-                    else { alert('Hata: '+(j.error||'Bilinmeyen')); btn.disabled=false; btn.textContent='Gönder'; }
-                }).catch(()=>{ alert('Bağlantı hatası'); btn.disabled=false; btn.textContent='Gönder'; });
-            });
-        })
-        .catch(() => alert('Form yüklenemedi.'));
-}
-
-function closeReplyForm(){ const m=document.getElementById('replyFormOverlay'); if(m){m.remove();document.body.style.overflow='';} }
-
-</script>`;
+    <script src="${asset('/js/admin-legacy.js')}" defer></script>
 }
 
 /* ─── Login formu ─── */

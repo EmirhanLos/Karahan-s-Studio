@@ -1,7 +1,7 @@
 const { escapeHtml } = require('./layout');
 
 function renderKayit(error = '', csrfToken = '') {
-    const csrfField = csrfToken ? `<input type="hidden" name="csrfToken" value="${escapeHtml(csrfToken)}">` : '';
+    const csrfField = csrfToken ? `<input type="hidden" name="_csrf" value="${escapeHtml(csrfToken)}">` : '';
     return `
     <main>
         <div class="page-header">
@@ -62,7 +62,8 @@ function renderKayit(error = '', csrfToken = '') {
     </main>`;
 }
 
-function renderKayitDogrula(email = '', error = '', channel = 'email') {
+function renderKayitDogrula(email = '', error = '', channel = 'email', csrfToken = '') {
+    const csrfField = csrfToken ? `<input type="hidden" name="_csrf" value="${escapeHtml(csrfToken)}">` : '';
     return `
     <main>
         <div class="page-header">
@@ -78,6 +79,7 @@ function renderKayitDogrula(email = '', error = '', channel = 'email') {
                     Onay kodu <strong>${escapeHtml(email)}</strong> adresine gönderildi.
                 </div>
                 <form method="POST" action="/kayit/dogrula" class="admin-form auth-form">
+                    ${csrfField}
                     <input type="hidden" name="email" value="${escapeHtml(email)}">
                     <div class="form-group">
                         <label>6 Haneli Onay Kodu</label>
@@ -94,7 +96,7 @@ function renderKayitDogrula(email = '', error = '', channel = 'email') {
 }
 
 function renderGiris(error = '', csrfToken = '') {
-    const csrfField = csrfToken ? `<input type="hidden" name="csrfToken" value="${escapeHtml(csrfToken)}">` : '';
+    const csrfField = csrfToken ? `<input type="hidden" name="_csrf" value="${escapeHtml(csrfToken)}">` : '';
     return `
     <main>
         <div class="page-header">
@@ -145,7 +147,7 @@ function renderGiris(error = '', csrfToken = '') {
 }
 
 function renderSifremiUnuttum(error = '', success = '', csrfToken = '') {
-    const csrfField = csrfToken ? `<input type="hidden" name="csrfToken" value="${escapeHtml(csrfToken)}">` : '';
+    const csrfField = csrfToken ? `<input type="hidden" name="_csrf" value="${escapeHtml(csrfToken)}">` : '';
     return `
     <main>
         <div class="page-header">
@@ -165,7 +167,7 @@ function renderSifremiUnuttum(error = '', success = '', csrfToken = '') {
                     </div>
                     <div class="form-group">
                         <label>Doğrulama Yöntemi</label>
-                        <select name="channel" id="resetChannel" onchange="toggleResetChannel()">
+                        <select name="channel" id="resetChannel">
                             <option value="email">E-posta ile sıfırlama linki gönder</option>
                             <option value="sms">SMS ile kod gönder (kayıtlı numara varsa)</option>
                         </select>
@@ -190,16 +192,11 @@ function renderSifremiUnuttum(error = '', success = '', csrfToken = '') {
                 <p class="auth-alt" style="margin-top: 1rem;"><a href="/giris">← Giriş sayfasına dön</a></p>
             </div>
         </div>
-        <script>
-        function toggleResetChannel() {
-            const channel = document.getElementById('resetChannel').value;
-        }
-        </script>
     </main>`;
 }
 
 function renderSifreSifirla(email = '', error = '', channel = 'email', csrfToken = '') {
-    const csrfField = csrfToken ? `<input type="hidden" name="csrfToken" value="${escapeHtml(csrfToken)}">` : '';
+    const csrfField = csrfToken ? `<input type="hidden" name="_csrf" value="${escapeHtml(csrfToken)}">` : '';
     return `
     <main>
         <div class="page-header">
@@ -246,7 +243,7 @@ function renderSifreSifirla(email = '', error = '', channel = 'email', csrfToken
 }
 
 function renderSifreSifirlaForm(email = '', error = '', csrfToken = '') {
-    const csrfField = csrfToken ? `<input type="hidden" name="csrfToken" value="${escapeHtml(csrfToken)}">` : '';
+    const csrfField = csrfToken ? `<input type="hidden" name="_csrf" value="${escapeHtml(csrfToken)}">` : '';
     return `
     <main>
         <div class="page-header">
