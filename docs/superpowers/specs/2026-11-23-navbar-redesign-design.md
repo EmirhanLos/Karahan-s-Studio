@@ -52,7 +52,7 @@ Hedef: **daha sade ve daha şık** bir navbar. Cam yüzey hissi korunur, ama iko
 ### 3.4 Eylem (sağ)
 
 - Giriş yokken: `Giriş Yap` — `background: #fff`, `color: #050507`, `border-radius: 999px`, `padding: 9px 20px`, 0.85rem / 700; hover `background: #d4d4d8`
-- Giriş varken: `Profil` — aktif durum stiliyle aynı görünen metin linki (`/profil`)
+- Giriş varken: `Profil` — normal bir metin linki (`/profil`); dolu-hap stili **yalnızca** `/profil` sayfasındayken görünür
 
 ### 3.5 "Projeler" açılır listesi
 
@@ -112,7 +112,7 @@ Hedef: **daha sade ve daha şık** bir navbar. Cam yüzey hissi korunur, ama iko
 1. `node --test` — 4 test dosyası (`data-store`, `firebase-auth`, `product-checkout`, `security`) yeşil kalmalı
 2. Manuel kontrol genişlikleri: 1440, 1024, 900, 390
 3. Kontrol noktaları: aktif link durumu, dropdown açılıp kapanması, mobil panel, scroll'da cam geçişi, giriş/giriş yapmış navbar farkı
-4. `grep -ri "nav-lens\|NAV_ICONS\|nav-tab-label"` → kalıntı olmamalı (sadece `src/modules/admin` kendi `admin-nav` sınıfları hariç)
+4. `grep -ri "nav-lens\|NAV_ICONS\|nav-tab-label"` → kalıntı olmamalı. Admin panelinin kendi `admin-nav` sınıfları bu taramadan muaftır ve değiştirilmez.
 
 ## 8. Riskler
 
