@@ -2,6 +2,8 @@
    data/store.js — SQLite tabanlı JSON mağazaları.
    Mevcut JSON dosyaları ilk açılışta SQLite'a aktarılır; API
    alan modüller için değişmeden kalır.
+   Vercel ve sunucusuz canlı ortamlarda proje dizini salt okunur
+   olduğundan SQLite veritabanı /tmp dizininde barındırılır.
    ═══════════════════════════════════════════════════════════════ */
 'use strict';
 
@@ -9,12 +11,32 @@ const fs = require('node:fs');
 const path = require('node:path');
 const Database = require('better-sqlite3');
 
-const ROOT = path.join(__dirname, '..', '..', 'data');
+const BUNDLED_ROOT = path.join(__dirname, '..', '..', 'data');
+const IS_SERVERLESS_OR_PROD = Boolean(
+    process.env.VERCEL ||
+    process.env.NOW_REGION ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    (process.env.NODE_ENV === 'production' && process.platform !== 'win32')
+);
+const ROOT = IS_SERVERLESS_OR_PROD ? (process.env.DB_DIR || '/tmp') : (process.env.DB_DIR || BUNDLED_ROOT);
 const IMPORT_MARKER = 'json-import-v1';
 
 function createStore(root = ROOT) {
     fs.mkdirSync(root, { recursive: true });
-    const db = new Database(path.join(root, 'database.sqlite'));
+
+    // Canlı / Vercel ortamında /tmp kullanılıyorsa ve henüz database.sqlite yoksa
+    // projeyle birlikte gelen data/database.sqlite dosyasını /tmp dizinine kopyala
+    const targetDbPath = path.join(root, 'database.sqlite');
+    const bundledDbPath = path.join(BUNDLED_ROOT, 'database.sqlite');
+    if (root === ROOT && IS_SERVERLESS_OR_PROD && !fs.existsSync(targetDbPath) && fs.existsSync(bundledDbPath)) {
+        try {
+            fs.copyFileSync(bundledDbPath, targetDbPath);
+        } catch (copyErr) {
+            console.warn('Varsayılan SQLite veritabanı kopyalanamadı:', copyErr.message);
+        }
+    }
+
+    const db = new Database(targetDbPath);
     db.pragma('journal_mode = WAL');
     db.exec(`
         CREATE TABLE IF NOT EXISTS store (
@@ -55,6 +77,7 @@ function createStore(root = ROOT) {
         const files = fs.readdirSync(root).filter(file => file.endsWith('.json'));
         const importAll = db.transaction(() => {
             if (hasImported.get(IMPORT_MARKER)) return;
+
             for (const file of files) {
                 const name = path.basename(file, '.json');
                 if (!/^[a-z0-9_-]+$/i.test(name)) {

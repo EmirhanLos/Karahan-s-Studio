@@ -29,7 +29,7 @@ function getProductUpdates(product) {
         .sort((a, b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''));
 }
 
-function renderProduct(product) {
+function renderProduct(product, user = null) {
     if (!product) {
         return `
         <section class="container" style="padding-top:var(--sp-6)">
@@ -57,6 +57,18 @@ function renderProduct(product) {
     const heroImage = gallery[0] || product.image;
     const productUpdates = getProductUpdates(product);
 
+    const platformsHtml = (product.platforms || []).map(platform => `<span class="chip">${esc(platform)}</span>`).join('');
+
+    const userId = user ? String(user.id) : '';
+    const purchased = userId && data.transactions().some(t =>
+        t.type === 'income' && String(t.userId) === userId && String(t.productId) === String(product.id));
+    const downloaded = userId && data.downloads().some(d =>
+        String(d.userId) === userId && String(d.productId) === String(product.id));
+    const canReview = !!(user && (purchased || downloaded));
+
+    const reviews = data.reviews().filter(x => String(x.productId) === String(product.id))
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
     return `
     <article class="container" style="padding-top:var(--sp-6)">
         <header class="product-hero" data-reveal>
@@ -71,12 +83,12 @@ function renderProduct(product) {
                 ${isFree
                     ? (downloadable ? `<a class="btn btn-primary" href="/indir/${esc(product.id)}">İndir</a>` : '')
                     : `<a class="btn btn-primary" href="/satin-al/${esc(product.id)}">Satın Al · ${money(finalPrice)}</a>`}
-                ${!isFree && downloadable ? `<a class="btn btn-secondary" href="/indir/${esc(product.id)}">İndir</a>` : ''}
+                ${isFree && downloadable ? `<a class="btn btn-secondary" href="/indir/${esc(product.id)}">İndir</a>` : ''}
                 ${product.liveUrl ? `<a class="btn btn-secondary" href="${esc(product.liveUrl)}" target="_blank" rel="noopener">Canlı</a>` : ''}
                 <a class="btn btn-ghost" href="#features">Özellikler</a>
             </div>
             ${downloadable ? `<p class="text-subtle text-sm" style="margin-top:var(--sp-3)">İndirilecek dosya: <strong>${esc(typeof fileRef === 'string' ? fileRef : (fileRef.name || 'ürün dosyası'))}</strong>${typeof fileRef === 'object' && fileRef.size ? ` · ${fileSize(fileRef.size)}` : ''}</p>` : ''}
-            ${product.couponCode ? `<p class="text-subtle text-sm" style="margin-top:var(--sp-3)">İndirim kuponu: <strong>${esc(product.couponCode)}</strong>${product.couponDiscount ? ` · ek %${esc(product.couponDiscount)} indirim` : ''}</p>` : ''}
+            ${product.couponCode ? `<div class="coupon-box"><span class="coupon-label">İndirim Kuponu</span> <strong class="coupon-code">${esc(product.couponCode)}</strong>${product.couponDiscount ? ` · ek %${esc(product.couponDiscount)} indirim` : ''}</div>` : ''}
             ${product.description ? `<p class="product-description">${esc(product.description)}</p>` : ''}
         </header>
 
@@ -125,26 +137,46 @@ function renderProduct(product) {
             </div>
         </section>` : ''}
 
+        ${(product.platforms || []).length > 0 ? `
+        <section class="product-section" data-reveal>
+            <h2 style="margin-bottom:var(--sp-4)">Platformlar</h2>
+            <div class="chip-row">${platformsHtml}</div>
+        </section>` : ''}
+
         <section class="product-section" id="rating" data-reveal>
             <h2 style="margin-bottom:var(--sp-4)">Puanla</h2>
             <div class="rating-block surface" style="padding:var(--sp-6)">
                 <div class="stars" data-rating-stars style="font-size:1.4rem;margin-bottom:var(--sp-3)">${renderStars(product.rating || 0)}</div>
                 <p class="rating-value" data-rating-value>${(product.rating || 0).toFixed(1)} / 5</p>
                 <p class="rating-count"><span data-rating-count>${product.reviewCount || 0}</span> değerlendirme</p>
+                ${canReview ? `
                 <form method="POST" action="/api/rate/${esc(product.id)}" data-rating-form style="margin-top:var(--sp-5);display:grid;gap:var(--sp-3);max-width:340px;margin-inline:auto">
+                    <input type="hidden" name="rating" value="">
                     <div class="form-group">
-                        <label class="form-label">Puanın</label>
-                        <select name="rating" class="form-input">
-                            <option value="5">5 · Mükemmel</option>
-                            <option value="4">4 · Çok iyi</option>
-                            <option value="3">3 · İyi</option>
-                            <option value="2">2 · Orta</option>
-                            <option value="1">1 · Kötü</option>
-                        </select>
+                        <label class="form-label">Yorumunuz (isteğe bağlı)</label>
+                        <textarea name="comment" class="form-input" rows="3" placeholder="Kısa bir yorum bırakın..."></textarea>
                     </div>
+                    <div class="star-buttons" role="radiogroup" aria-label="Puan verin">${[5, 4, 3, 2, 1].map(n => `<button type="button" class="star-btn" data-value="${n}" aria-label="${n} yıldız">${'★'.repeat(n)}</button>`).join('')}</div>
                     <button type="submit" class="btn btn-primary">Gönder</button>
                     <p class="rating-msg" data-rating-message role="status" aria-live="polite" hidden></p>
-                </form>
+                </form>` : `
+                <p class="text-muted">Yorum yapmak için ürünü satın almış veya indirmiş olmalısınız. <a href="/giris">Giriş yapabilirsiniz.</a></p>`}
+                ${reviews.length ? `
+                <h3 style="margin:var(--sp-5) 0 var(--sp-3)">Kullanıcı Yorumları</h3>
+                <div class="reviews-list">
+                    ${reviews.map(r => `
+                        <article class="review-item surface" style="padding:var(--sp-4)">
+                            <div class="review-item-head" style="display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3)">
+                                <div>
+                                    <strong>${esc(r.userName)}</strong>
+                                    ${r.verified ? `<span class="badge badge--ok" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">doğrulanmış</span>` : ''}
+                                </div>
+                                <time class="text-subtle text-xs">${date(r.date)}</time>
+                            </div>
+                            <div class="review-item-stars" style="font-size:1.25rem;margin:var(--sp-2) 0">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                            ${r.comment ? `<p>${esc(r.comment)}</p>` : ''}
+                        </article>`).join('')}
+                </div>` : ''}
             </div>
         </section>
 
@@ -181,6 +213,8 @@ function renderCheckout(product) {
         : product.discount > 0
             ? product.price * (100 - product.discount) / 100
             : product.price;
+    const couponDiscount = product.couponDiscount || 0;
+    const priceWithCoupon = couponDiscount > 0 ? finalPrice * (1 - couponDiscount / 100) : finalPrice;
 
     return `
     <section class="container checkout-page" style="padding-top:var(--sp-6);max-width:760px">
@@ -197,11 +231,13 @@ function renderCheckout(product) {
                     <h2 id="checkout-product" style="margin-top:var(--sp-3)">${esc(product.name)}</h2>
                     <p class="text-muted">${esc(product.summary || product.tagline || '')}</p>
                 </div>
-                <strong style="font-size:clamp(1.25rem,4vw,1.75rem);white-space:nowrap">${money(finalPrice)}</strong>
+                <strong style="font-size:clamp(1.25rem,4vw,1.75rem);white-space:nowrap">${money(priceWithCoupon)}</strong>
+                ${couponDiscount > 0 ? `<span class="text-subtle" style="font-size:0.85rem">· kupon sonrası</span>` : ''}
             </div>
             ${product.discount > 0 && !product.isFree
                 ? `<p class="text-subtle">Liste fiyatı: <s>${money(product.price)}</s> · %${esc(product.discount)} indirim uygulandı.</p>`
                 : ''}
+            ${product.couponCode ? `<div class="callout coupon-box" role="status" style="margin-top:var(--sp-4)"><strong>İndirim Kuponu</strong> <span class="coupon-code">${esc(product.couponCode)}</span>${couponDiscount > 0 ? ` · ek %${esc(couponDiscount)} indirim` : ''} ürün fiyatından düşülmüştür.</div>` : ''}
             <div class="callout" role="status" style="margin-top:var(--sp-4)">
                 <strong>Güvenli çevrimiçi ödeme henüz etkin değil.</strong>
                 <p style="margin:var(--sp-1) 0 0">Kart bilgilerinizi bu sitede paylaşmayın. Satın alma ve lisans seçenekleri için bizimle iletişime geçebilirsiniz.</p>

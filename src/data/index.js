@@ -46,6 +46,21 @@ const stores = {
     saveTxn:      (t) => store.upsert('transactions', t),
     removeTxn:    (id) => store.remove('transactions', id),
 
+    downloads:    () => store.read('downloads', []),
+    saveDownloads:(list) => store.write('downloads', list),
+    saveDownload: (d) => store.upsert('downloads', d),
+    removeDownload:(id) => store.remove('downloads', id),
+
+    reviews:      () => store.read('reviews', []),
+    saveReviews:  (list) => store.write('reviews', list),
+    saveReview:   (r) => store.upsert('reviews', r),
+    removeReview: (id) => store.remove('reviews', id),
+
+    waitlist:     () => store.read('waitlist', []),
+    saveWaitlist: (list) => store.write('waitlist', list),
+    saveWaitlistEntry: (w) => store.upsert('waitlist', w),
+    removeWaitlistEntry: (id) => store.remove('waitlist', id),
+
     banned:       () => store.read('banned', { ips: [], emails: [], passwords: [] }),
     saveBanned:   (b) => store.write('banned', b),
 
@@ -53,7 +68,16 @@ const stores = {
     saveAudit:    (list) => store.write('audit', list),
 
     sliderImages: () => store.read('slider-images', []),
-    saveSliderImages: (list) => store.write('slider-images', list)
+    saveSliderImages: (list) => store.write('slider-images', list),
+
+    /* ── Kullanıcı izlenimleri ──────────────────────────────────────
+       - cartTrackings: sepete eklenen + bıraktığı projeler
+       - viewedProducts: gördüğü ürünler (user tarafında)
+       ═════════════════════════════════════════════════════════════ */
+    cartTrackings:    () => store.read('cart-trackings', []),
+    saveCartTrackings:(list) => store.write('cart-trackings', list),
+    saveCartTracking: (t) => store.upsert('cart-trackings', t),
+    removeCartTracking: (id) => store.remove('cart-trackings', id)
 };
 
 module.exports = { ...stores, nextId: store.nextId, _raw: store };

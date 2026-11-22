@@ -8,6 +8,7 @@
 const { esc, date } = require('../../core/views');
 const data = require('../../data');
 const { getProductUpdates } = require('./product');
+const { asset } = require('./assets');
 
 const ICON = {
     arrow: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
@@ -135,7 +136,8 @@ function renderUpdateDetail(update, product) {
 }
 
 /* ═══ Yakında ═══ */
-function renderUpcoming() {
+function renderUpcoming(user = null) {
+    const userEmail = user ? String(user.email || '').trim() : '';
     const items = data.upcoming()
         .sort((a, b) => (a.launchDate || '').localeCompare(b.launchDate || ''));
 
@@ -157,6 +159,10 @@ function renderUpcoming() {
                         <h3 class="upcoming-card-title">${esc(u.name)}</h3>
                         <p class="upcoming-card-desc">${esc(u.description || '')}</p>
                         <a class="btn btn-ghost btn-sm" href="/urun/${esc(u.id || '')}">${u.id ? 'Detay' : 'Yakında'}</a>
+                        <button class="btn btn-primary btn-sm btn-waitlist"
+                                data-id="${esc(u.id || '')}"
+                                data-email="${esc(userEmail)}"
+                                type="button">Yayınlanınca Haber Ver</button>
                     </div>
                     <div class="upcoming-card-visual">
                         ${u.image
@@ -164,7 +170,8 @@ function renderUpcoming() {
                             : `<div class="slider-placeholder">${esc((u.name || 'Y').charAt(0).toUpperCase())}</div>`}
                     </div>
                 </article>`).join('')}</div>`}
-    </section>`;
+    </section>
+    <script src="${asset('/js/bekleme-listesi.js')}" defer></script>`;
 }
 
 /* ═══ İletişim ═══ */

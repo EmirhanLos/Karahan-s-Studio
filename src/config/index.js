@@ -78,10 +78,10 @@ module.exports = {
         from: env.EMAIL_FROM
     } : null,
 
-    google: env.GOOGLE_CLIENT_ID ? {
-        clientID: env.GOOGLE_CLIENT_ID,
-        clientSecret: env.GOOGLE_CLIENT_SECRET,
-        callbackURL: env.GOOGLE_CALLBACK_URL
+    google: (process.env.GOOGLE_CLIENT_ID || env.GOOGLE_CLIENT_ID) ? {
+        clientID: process.env.GOOGLE_CLIENT_ID || env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || env.GOOGLE_CLIENT_SECRET || '',
+        callbackURL: process.env.GOOGLE_CALLBACK_URL || env.GOOGLE_CALLBACK_URL || '/auth/google/callback'
     } : null,
 
     firebase: env.FIREBASE_PROJECT_ID ? {

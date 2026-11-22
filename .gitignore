@@ -1,9 +1,33 @@
+# Dependencies
 node_modules/
 
+# Environment files
 .env
+.env.*
+!.env.example
 
-# Sensitive data and databases
-data/
-*.sqlite
-*.sqlite-shm
-*.sqlite-wal
+# SQLite — sessions dosyasi ve WAL'lar ignore edilir.
+# data/database.sqlite SEED olarak commit edilmelidir (Vercel icin).
+data/sessions.sqlite
+data/sessions.sqlite-shm
+data/sessions.sqlite-wal
+data/database.sqlite-shm
+data/database.sqlite-wal
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Buyuk / hassas runtime JSON (zaten database.sqlite icinde saklanir)
+data/audit.json
+
+# Vercel
+.vercel/
+.vercel
+
+# OS / loglar
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

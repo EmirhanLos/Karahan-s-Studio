@@ -5,6 +5,8 @@
 'use strict';
 
 const crypto = require('node:crypto');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { renderPage, renderHeader, renderFooter } = require('../public/layout');
 const { renderLogin, renderRegister, renderForgot, renderReset, render2FAGate, render2FASetup, renderRecoveryCodes } = require('./views');
 const { renderProfile, renderProfileEdit } = require('./profile');
@@ -17,9 +19,56 @@ const data = require('../../data');
 
 const RECOVERY_COUNT = 10;
 
+/* ── Google OAuth Yapılandırması (process.env üzerinden okunur) ── */
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || '/auth/google/callback';
+
+if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+    passport.use(new GoogleStrategy({
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: GOOGLE_CALLBACK_URL,
+        proxy: true
+    }, async (accessToken, refreshToken, profile, done) => {
+        try {
+            const email = profile.emails?.[0]?.value?.toLowerCase();
+            if (!email) {
+                return done(new Error('Google hesabından e-posta adresi alınamadı.'));
+            }
+            let user = data.userByEmail(email);
+            if (!user) {
+                user = {
+                    id: data.nextId(data.users()),
+                    email,
+                    firstName: profile.name?.givenName || profile.displayName || 'Google',
+                    lastName: profile.name?.familyName || 'Kullanıcısı',
+                    phone: '',
+                    role: 'user',
+                    googleId: profile.id,
+                    avatar: profile.photos?.[0]?.value || '',
+                    createdAt: new Date().toISOString(),
+                    lastLoginAt: new Date().toISOString()
+                };
+                data.saveUser(user);
+            } else {
+                user.googleId = profile.id;
+                if (profile.photos?.[0]?.value && !user.avatar) {
+                    user.avatar = profile.photos[0].value;
+                }
+                user.lastLoginAt = new Date().toISOString();
+                data.saveUser(user);
+            }
+            return done(null, user);
+        } catch (err) {
+            return done(err);
+        }
+    }));
+}
+
 /* ── Oturum yardımcıları ── */
 function isAuthed(req) {
-    return !!req.session?.userId && req.session.authenticatedBy === 'firebase';
+    return !!req.session?.userId && (req.session.authenticatedBy === 'firebase' || req.session.authenticatedBy === 'google');
 }
 function requireAuth(req, res, next) {
     if (!isAuthed(req)) return res.redirect('/giris');
@@ -105,6 +154,37 @@ function clearFail(key) { return lockout.clear(key); }
 module.exports = function (app, { generateCsrf, requireCsrf }) {
     const csrf = () => generateCsrf(app.request?._session) || null; // fall-through; csrf from session
     function getCsrf(req) { return generateCsrf(req); }
+
+    /* ── Google OAuth Rotaları ── */
+    app.get('/auth/google', (req, res, next) => {
+        if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+            req.session.flash = 'Google ile giriş şu anda yapılandırılmamış.';
+            return res.redirect('/giris');
+        }
+        passport.authenticate('google', { scope: ['profile', 'email'], prompt: 'select_account' })(req, res, next);
+    });
+
+    app.get('/auth/google/callback', (req, res, next) => {
+        if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+            return res.redirect('/giris');
+        }
+        passport.authenticate('google', { failureRedirect: '/giris?error=google_failed', session: false }, (err, user) => {
+            if (err || !user) {
+                console.error('Google OAuth hatası:', err?.message || err);
+                return res.redirect('/giris?error=Giri%C5%9F%20ba%C5%9Far%C4%B1s%C4%B1z');
+            }
+            if (user.banned) {
+                return res.redirect('/giris?error=Hesab%C4%B1n%C4%B1z%20engellendi');
+            }
+            req.session.userId = user.id;
+            req.session.email = user.email;
+            req.session.authenticatedBy = 'google';
+            req.session.createdAt = Date.now();
+            recordLogin(user);
+            audit.log({ type: 'login-google', req, actorId: user.id });
+            res.redirect('/profil');
+        })(req, res, next);
+    });
 
     /* ── Giriş ── */
     app.get('/giris', (req, res) => {
@@ -403,12 +483,24 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
         const user = loadUser(req);
         const tfaOn = is2faEnabled(user.id);
         const email = String(user.email || '').trim().toLowerCase();
+        const userId = String(user.id);
         const messages = data.messages()
             .filter(message => message.userId
-                ? String(message.userId) === String(user.id)
+                ? String(message.userId) === userId
                 : String(message.email || '').trim().toLowerCase() === email)
             .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-        const html = renderPage({ title: 'Profil', body: renderProfile({ user, csrf: getCsrf(req), tfaOn, messages }), current: 'profil', user });
+        const purchases = data.transactions()
+            .filter(t => t.type === 'income' && String(t.userId) === userId)
+            .sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+        const downloads = data.downloads()
+            .filter(d => String(d.userId) === userId)
+            .sort((a, b) => new Date(b.downloadedAt || 0) - new Date(a.downloadedAt || 0));
+        const viewed = Array.isArray(user.viewedProducts) ? user.viewedProducts : [];
+        const html = renderPage({
+            title: 'Profil',
+            body: renderProfile({ user, csrf: getCsrf(req), tfaOn, messages, purchases, downloads, viewed }),
+            current: 'profil', user
+        });
         res.type('html').send(html);
     });
 

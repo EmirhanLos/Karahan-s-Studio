@@ -11,6 +11,7 @@ const firebaseAuth = require('../../core/firebase-auth');
 const firestoreAdmin = require('../../core/firestore-admin');
 const admins = require('../../core/admin-accounts');
 const data = require('../../data');
+const waitlist = require('../../core/waitlist');
 const registerAdminAuth = require('./auth');
 const { requireAdminPage, requireAdminApi, STEP } = registerAdminAuth;
 const { renderAdminShell, renderAdminDashboardHTML, renderAdminAuth, renderAdminSecurity } = require('./views');
@@ -214,6 +215,19 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
         audit.log({ type: 'admin-message-read', req, actorId: actor(req), detail: m.id });
         res.json({ ok: true });
     });
+
+    app.post('/admin/api/messages/:id/status', requireAdminApi, requireCsrf, (req, res) => {
+        const m = data.messages().find(x => String(x.id) === req.params.id);
+        if (!m) return res.status(404).json({ error: 'Bulunamadı' });
+        const status = req.body.status || 'İşlendi';
+        if (!['Yeni', 'İşlendi'].includes(status)) {
+            return res.status(400).json({ error: 'Geçersiz durum.' });
+        }
+        m.status = status;
+        data.saveMessage(m);
+        audit.log({ type: 'admin-message-status', req, actorId: actor(req), detail: `${m.id}->${status}` });
+        res.json({ ok: true, item: m });
+    });
     app.delete('/admin/api/messages/:id', requireAdminApi, requireCsrf, (req, res) => {
         const ok = data.removeMessage(req.params.id);
         if (!ok) return res.status(404).json({ error: 'Bulunamadı' });
@@ -230,6 +244,16 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
         data.saveForm(f);
         audit.log({ type: 'admin-form-status', req, actorId: actor(req), detail: `${f.id}->${f.status}` });
         res.json({ ok: true, item: f });
+    });
+
+    app.post('/admin/api/waitlist/:id/notify', requireAdminApi, requireCsrf, async (req, res) => {
+        try {
+            const result = await waitlist.notifyFor(req.params.id);
+            audit.log({ type: 'admin-waitlist-notify', req, actorId: actor(req), detail: `product=${req.params.id},sent=${result.sent}` });
+            res.json({ ok: true, ...result });
+        } catch (error) {
+            res.status(500).json({ error: 'Bildirim gönderilemedi.' });
+        }
     });
 
     /* Kullanıcılar: yalnızca ban toggle + admin toggle */

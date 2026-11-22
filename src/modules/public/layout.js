@@ -9,7 +9,7 @@
 
 const { esc, attr, json, url, money, date } = require('../../core/views');
 const data = require('../../data');
-const { asset } = require('./assets');
+const { asset, fullAssetUrl, CDN_URL } = require('./assets');
 
 const SITE = {
     name: "Karahan's Studio",
@@ -159,9 +159,57 @@ function clientScripts() {
     <script src="${esc(asset('/js/main.js'))}" defer></script>`;
 }
 
-function renderPage({ title, description, body, current = '', user = null, og = {} }) {
+function renderPage({ title, description, body, current = '', user = null, og = {}, canonical = '', noindex = false, schema = null }) {
     const desc = description || SITE.description;
-    const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
+    const fullTitle = title ? `${title} | ${SITE.name}` : `${SITE.name} — Bağımsız Yazılım ve Oyun Stüdyosu`;
+    const origin = 'https://' + SITE.domain;
+    const canonicalUrl = canonical || (current === 'home' || !current ? origin : `${origin}/${current.replace(/^\/+/, '')}`);
+    const ogImage = fullAssetUrl(og.image || '/images/ai.png', origin);
+    const ogType = og.type || 'website';
+
+    const baseSchema = [
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": SITE.name,
+            "url": origin,
+            "description": SITE.description,
+            "publisher": {
+                "@type": "Organization",
+                "name": SITE.name,
+                "url": origin,
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": fullAssetUrl('/images/ai.png', origin)
+                }
+            }
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": SITE.name,
+            "url": origin,
+            "logo": fullAssetUrl('/images/ai.png', origin),
+            "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": SITE.contact.phone,
+                "contactType": "customer service",
+                "areaServed": "TR",
+                "availableLanguage": "Turkish"
+            },
+            "sameAs": [
+                "https://instagram.com/karahans",
+                "https://youtube.com/@karahans",
+                "https://discord.gg/karahans"
+            ]
+        }
+    ];
+
+    if (schema) {
+        if (Array.isArray(schema)) baseSchema.push(...schema);
+        else baseSchema.push(schema);
+    }
+
     return `<!doctype html>
 <html lang="tr" class="no-js" data-theme="dark">
 <head>
@@ -171,23 +219,48 @@ function renderPage({ title, description, body, current = '', user = null, og = 
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#020203">
+    <meta name="robots" content="${noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'}">
     <meta name="description" content="${esc(desc)}">
     <title>${esc(fullTitle)}</title>
+    <link rel="canonical" href="${esc(canonicalUrl)}">
+
+    <!-- Open Graph (Facebook / WhatsApp / LinkedIn) -->
+    <meta property="og:site_name" content="${esc(SITE.name)}">
     <meta property="og:title" content="${esc(fullTitle)}">
     <meta property="og:description" content="${esc(desc)}">
-    <meta property="og:type" content="${esc(og.type || 'website')}">
-    <meta property="og:site_name" content="${esc(SITE.name)}">
+    <meta property="og:url" content="${esc(canonicalUrl)}">
+    <meta property="og:type" content="${esc(ogType)}">
+    <meta property="og:image" content="${esc(ogImage)}">
+    <meta property="og:locale" content="tr_TR">
+
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@karahans">
+    <meta name="twitter:creator" content="@karahans">
+    <meta name="twitter:title" content="${esc(fullTitle)}">
+    <meta name="twitter:description" content="${esc(desc)}">
+    <meta name="twitter:image" content="${esc(ogImage)}">
+
+    <!-- CDN & DNS Ön Hazırlık -->
     <link rel="icon" type="image/svg+xml" href="${esc(asset('/assets/favicon.svg'))}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    ${CDN_URL ? `<link rel="preconnect" href="${esc(CDN_URL)}"><link rel="dns-prefetch" href="${esc(CDN_URL)}">` : ''}
+
+    <!-- Optimize Edilmiş Yazı Tipi ve Biçemler -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-    <link rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
     <link rel="stylesheet" href="${esc(asset('/css/style.css'))}">
     <link rel="stylesheet" href="${esc(asset('/css/liquid-glass.css'))}">
     <link rel="stylesheet" href="${esc(asset('/css/nav-lens.css'))}">
     <link rel="stylesheet" href="${esc(asset('/css/mobile.css'))}">
     <script src="${esc(asset('/js/boot.js'))}"></script>
+
+    <!-- Schema.org JSON-LD Yapısal Veri (SEO) -->
+    <script type="application/ld+json">${JSON.stringify(baseSchema)}</script>
 </head>
 <body class="site-shell">
     <div class="scroll-progress" aria-hidden="true"></div>

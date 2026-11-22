@@ -33,22 +33,7 @@ function verify(plain, stored) {
         } catch { return false; }
     }
 
-    /* Eski "salt:key" biçimi (geriye uyumluluk) */
-    if (stored.includes(':')) {
-        try {
-            const [saltHex, keyHex] = stored.split(':');
-            const salt = Buffer.from(saltHex, 'hex');
-            const key  = Buffer.from(keyHex, 'hex');
-            const test = crypto.scryptSync(plain, salt, key.length,
-                { N: SCRYPT_N, r: SCRYPT_R, p: SCRYPT_P });
-            return crypto.timingSafeEqual(test, key);
-        } catch { return false; }
-    }
-
-    /* Düz metin karmalar kabul edilmez.
-       İlk günlerde yanlışlıkla saklanan düz metin parolalar
-       yalnızca hash() ile yeniden karmalanabilir; verify()
-       hiçbir koşulda düz metni kabul etmez. */
+    /* Eski formatlar (duz metin veya salt:key) kabul edilmez. */
     return false;
 }
 

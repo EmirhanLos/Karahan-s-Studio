@@ -3,9 +3,11 @@
    Tüm modüller (public, auth, admin, API) burada yüklenir
    ve route'lar yönlendirilir. Tek bir Express uygulaması,
    yapılandırılmış middleware sırası.
+   Vercel & sunucusuz uyumlu (app export, /tmp SQLite).
    ═══════════════════════════════════════════════════════════════ */
 'use strict';
 
+const fs      = require('node:fs');
 const path    = require('node:path');
 const crypto  = require('node:crypto');
 const express = require('express');
@@ -16,6 +18,7 @@ const compression = require('compression');
 const SQLiteStore = require('connect-sqlite3')(session);
 const rateLimit = require('express-rate-limit');
 const nodemailer = require('nodemailer');
+const passport = require('passport');
 
 const config = require('./config');
 const { esc } = require('./core/views');
@@ -26,27 +29,25 @@ const store = require('./data/store');
 
 /* ── Uygulama ────────────────────────────────────────────────── */
 const app = express();
+
+// Güvenli ters vekil (reverse proxy / Vercel HTTPS) ayarı
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
-/* ── Güvenlik başlıkları ────────────────────────────────────── */
+/* ── Güvenlik başlıkları (CDN & SEO & Google OAuth uyumlu) ───── */
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            /* 'unsafe-inline' kaldırıldı: şablon içi <script> blokları
-               ve onclick/onsubmit gibi satır içi olay işleyicileri
-               artık çalıştırılmaz. Tüm betikler public/js/ altından
-               <script src="..."> ile yüklenir. */
-            scriptSrc:  ["'self'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
+            scriptSrc:  ["'self'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com', 'https://accounts.google.com'],
             scriptSrcAttr: ["'none'"],
             styleSrc:   ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
             fontSrc:    ["'self'", 'https://fonts.gstatic.com', 'data:'],
-            imgSrc:     ["'self'", 'data:', 'https:'],
-            connectSrc:  ["'self'"],
+            imgSrc:     ["'self'", 'data:', 'https:', 'https://*.googleusercontent.com'],
+            connectSrc: ["'self'", 'https://identitytoolkit.googleapis.com', 'https://securetoken.googleapis.com'],
             frameAncestors: ["'none'"],
             baseUri:     ["'self'"],
-            formAction:  ["'self'"]
+            formAction:  ["'self'", 'https://accounts.google.com']
         }
     },
     crossOriginEmbedderPolicy: false,
@@ -54,7 +55,7 @@ app.use(helmet({
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 
-/* ── Sıkıştırma (Brotli, gzip otomatik) ─────────────────────── */
+/* ── Sıkıştırma (Brotli, gzip otomatik - CDN dostu) ──────────── */
 app.use(compression());
 
 /* ── İstek ayrıştırma ───────────────────────────────────────── */
@@ -62,9 +63,14 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 
-/* ── Oturum ─────────────────────────────────────────────────── */
+/* ── Oturum (Vercel'de /tmp dizininde barındırılır) ─────────── */
+const sessionDbDir = (process.env.VERCEL || (config.isProd && process.platform !== 'win32'))
+    ? '/tmp'
+    : path.join(__dirname, '..', 'data');
+try { fs.mkdirSync(sessionDbDir, { recursive: true }); } catch {}
+
 app.use(session({
-    store: new SQLiteStore({ db: 'sessions.sqlite', dir: config.isProd ? path.join(__dirname, '..', 'data') : './data' }),
+    store: new SQLiteStore({ db: 'sessions.sqlite', dir: sessionDbDir }),
     secret: config.session.secret,
     resave: false,
     saveUninitialized: false,
@@ -79,13 +85,21 @@ app.use(session({
     }
 }));
 
-/* ── Statik varlıklar (sürümlü URL'lerle) ────────────────────── */
+/* ── Passport (Google OAuth) ────────────────────────────────── */
+app.use(passport.initialize());
+
+/* ── Statik varlıklar (CDN & Önbellek Başlıkları ile) ────────── */
 app.use(express.static(path.join(__dirname, '..', 'public'), {
     maxAge: config.isProd ? '30d' : 0,
     etag: true,
-    setHeaders(res, file) {
-        if (/\.(?:css|js|woff2?|png|jpe?g|svg|webp|avif|ico|webmanifest)$/i.test(file)) {
-            res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+    lastModified: true,
+    setHeaders(res, filePath) {
+        if (/\.(?:css|js|woff2?|ttf|eot|svg)$/i.test(filePath)) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (/\.(?:png|jpe?g|gif|webp|avif|ico)$/i.test(filePath)) {
+            res.setHeader('Cache-Control', 'public, max-age=2592000, s-maxage=31536000, stale-while-revalidate=86400');
+        } else {
+            res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800');
         }
     }
 }));
@@ -99,9 +113,6 @@ app.use('/2fa',    rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeader
 app.use(config.admin.loginPath, rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false, message: 'Çok fazla yönetici giriş denemesi.' }));
 
 /* ── CSRF ────────────────────────────────────────────────────── */
-/* Uygulama genelinde tek bir uygulama: token üretimi ve doğrulama
-   core/csrf.js içinde. Alan adı `_csrf` — tüm POST formları bu
-   gizli alanı içermelidir. */
 const { generateCsrf, requireCsrf } = require('./core/csrf');
 
 /* ── Oturum bilgisi (tüm şablonlara aktarılır) ─────────────── */
@@ -109,7 +120,7 @@ app.use((req, res, next) => {
     res.locals = res.locals || {};
     res.locals.path   = req.path;
     res.locals.origin = `${req.protocol}://${req.get('host')}`;
-    res.locals.user   = req.session?.authenticatedBy === 'firebase' && req.session.userId ? data.userById(req.session.userId) : null;
+    res.locals.user   = (req.session?.authenticatedBy === 'firebase' || req.session?.authenticatedBy === 'google') && req.session.userId ? data.userById(req.session.userId) : null;
     req.user          = res.locals.user;
     res.locals.admin  = null;
     next();
@@ -127,7 +138,8 @@ app.use((req, res, next) => {
             title: 'Erişim engellendi',
             body: renderBanned(reason),
             current: '',
-            user
+            user,
+            noindex: true
         }));
     }
     next();
@@ -276,78 +288,83 @@ app.post('/api/track/active', (req, res) => {
     res.status(204).end();
 });
 
-setInterval(async () => {
-    const now = Date.now();
-    const state = readTracking();
-    let changed = false;
+// Sunucusuz olmayan ortamlarda periyodik takip zamanlayıcısını çalıştır
+if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    const trackingInterval = setInterval(async () => {
+        const now = Date.now();
+        const state = readTracking();
+        let changed = false;
 
-    // 1) Site kapatıldıktan 1 dakika sonra yarım bırakılan proje hatırlatması
-    const dueByUser = new Map();
-    for (const item of state.pendingProjects) {
-        if (!item.completed && !item.notified && item.leftAt && (now - item.leftAt >= 60 * 1000)) {
-            if (!dueByUser.has(item.userId)) dueByUser.set(item.userId, []);
-            dueByUser.get(item.userId).push(item);
+        // 1) Site kapatıldıktan 1 dakika sonra yarım bırakılan proje hatırlatması
+        const dueByUser = new Map();
+        for (const item of state.pendingProjects) {
+            if (!item.completed && !item.notified && item.leftAt && (now - item.leftAt >= 60 * 1000)) {
+                if (!dueByUser.has(item.userId)) dueByUser.set(item.userId, []);
+                dueByUser.get(item.userId).push(item);
+            }
         }
-    }
 
-    for (const [userId, items] of dueByUser.entries()) {
-        const user = data.userById(userId);
-        for (const item of items) {
-            item.notified = true;
-            changed = true;
+        for (const [userId, items] of dueByUser.entries()) {
+            const user = data.userById(userId);
+            for (const item of items) {
+                item.notified = true;
+                changed = true;
+            }
+            if (!user || user.banned) continue;
+
+            const names = items.map(i => i.projectName).join(', ');
+            const msg = `Karahan's Studio: İncelediğin ${names} projesi seni bekliyor. İşlemini tamamlamak için siteye dönebilirsin.`;
+            await sendUserNotification(user, 'İncelediğin Proje Seni Bekliyor', msg);
         }
-        if (!user || user.banned) continue;
 
-        const names = items.map(i => i.projectName).join(', ');
-        const msg = `Karahan's Studio: İncelediğin ${names} projesi seni bekliyor. İşlemini tamamlamak için siteye dönebilirsin.`;
-        await sendUserNotification(user, 'İncelediğin Proje Seni Bekliyor', msg);
-    }
+        // 2) Her ay (30 günde bir) gezilen proje analizi ve öneri mesajı
+        const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+        const allProjects = data.projects();
 
-    // 2) Her ay (30 günde bir) gezilen proje analizi ve öneri mesajı
-    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-    const allProjects = data.projects();
+        for (const user of data.users()) {
+            if (user.banned) continue;
+            const lastSent = Number(state.monthlyLog[user.id]) || new Date(user.createdAt || now).getTime();
+            if (now - lastSent < THIRTY_DAYS_MS) continue;
 
-    for (const user of data.users()) {
-        if (user.banned) continue;
-        const lastSent = Number(state.monthlyLog[user.id]) || new Date(user.createdAt || now).getTime();
-        if (now - lastSent < THIRTY_DAYS_MS) continue;
+            const recentViews = (Array.isArray(user.viewedProducts) ? user.viewedProducts : [])
+                .filter(v => now - new Date(v.viewedAt).getTime() <= THIRTY_DAYS_MS);
 
-        const recentViews = (Array.isArray(user.viewedProducts) ? user.viewedProducts : [])
-            .filter(v => now - new Date(v.viewedAt).getTime() <= THIRTY_DAYS_MS);
+            if (recentViews.length === 0) {
+                state.monthlyLog[user.id] = now;
+                changed = true;
+                continue;
+            }
 
-        if (recentViews.length === 0) {
+            const categoryCounts = {};
+            const viewedIds = new Set();
+            for (const v of recentViews) {
+                viewedIds.add(String(v.productId));
+                const proj = allProjects.find(p => String(p.id) === String(v.productId));
+                const cat = proj?.category || 'Araç';
+                categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+            }
+
+            const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+            let recommended = allProjects.filter(p => p.category === topCategory && !viewedIds.has(String(p.id))).slice(0, 3);
+            if (recommended.length === 0) {
+                recommended = allProjects.filter(p => p.category === topCategory).slice(0, 3);
+            }
+
+            if (recommended.length > 0) {
+                const recNames = recommended.map(p => p.name).join(', ');
+                const msg = `Senin için birkaç tane proje bulundu: ${recNames}. İncelemek için Karahan's Studio'yu ziyaret edebilirsin.`;
+                await sendUserNotification(user, 'Senin İçin Yeni Projeler Bulundu', msg);
+            }
+
             state.monthlyLog[user.id] = now;
             changed = true;
-            continue;
         }
 
-        const categoryCounts = {};
-        const viewedIds = new Set();
-        for (const v of recentViews) {
-            viewedIds.add(String(v.productId));
-            const proj = allProjects.find(p => String(p.id) === String(v.productId));
-            const cat = proj?.category || 'Araç';
-            categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
-        }
+        if (changed) writeTracking(state);
+    }, 15 * 1000);
 
-        const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
-        let recommended = allProjects.filter(p => p.category === topCategory && !viewedIds.has(String(p.id))).slice(0, 3);
-        if (recommended.length === 0) {
-            recommended = allProjects.filter(p => p.category === topCategory).slice(0, 3);
-        }
-
-        if (recommended.length > 0) {
-            const recNames = recommended.map(p => p.name).join(', ');
-            const msg = `Senin için birkaç tane proje bulundu: ${recNames}. İncelemek için Karahan's Studio'yu ziyaret edebilirsin.`;
-            await sendUserNotification(user, 'Senin İçin Yeni Projeler Bulundu', msg);
-        }
-
-        state.monthlyLog[user.id] = now;
-        changed = true;
-    }
-
-    if (changed) writeTracking(state);
-}, 15 * 1000);
+    if (trackingInterval.unref) trackingInterval.unref();
+}
 
 /* ═══════════════════════════════════════════════════════════════
    ROTALAR — her modül kendi dosyasında tanımlı, burada bağlanır
@@ -371,14 +388,18 @@ app.use((req, res) => {
     const { renderNotFound } = require('./modules/public/misc');
     const { renderPage } = require('./modules/public/layout');
     const body = renderNotFound();
-    res.status(404).send(renderPage({ title: 'Sayfa bulunamadı', body, current: '', user: req.user }));
+    res.status(404).send(renderPage({ title: 'Sayfa bulunamadı', body, current: '', user: req.user, noindex: true }));
 });
 
-/* ── Sunucu ─────────────────────────────────────────────────── */
-const PORT = config.port;
-app.listen(PORT, () => {
-    console.log(`╭─ Karahan's Studio v2`);
-    console.log(`│ Ortam: ${config.env}  |  Port: ${PORT}`);
-    console.log(`│ http://localhost:${PORT}`);
-    console.log(`╰─ Sıkıştırma, helmet, rate limit aktif`);
-});
+/* ── Sunucu & Serverless Export ─────────────────────────────── */
+if (require.main === module) {
+    const PORT = config.port;
+    app.listen(PORT, () => {
+        console.log(`╭─ Karahan's Studio v2`);
+        console.log(`│ Ortam: ${config.env}  |  Port: ${PORT}`);
+        console.log(`│ http://localhost:${PORT}`);
+        console.log(`╰─ Sıkıştırma, helmet, rate limit aktif`);
+    });
+}
+
+module.exports = app;
