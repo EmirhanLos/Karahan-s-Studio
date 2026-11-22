@@ -24,9 +24,6 @@ const SITE = {
 };
 
 const ICONS = {
-    sun:  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
-    moon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
-    sys:  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
     menu: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>',
     close: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
     ig: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
@@ -40,18 +37,18 @@ const ICONS = {
     pin:  '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'
 };
 
-const NAV_ICONS = {
-    home: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
-    projects: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5m8-5v5"/></svg>',
-    updates: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.6-2L20 12M4 12l2.8 5a7 7 0 0 0 11.6-2"/></svg>',
-    studio: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 4.3 1.7c-1.1 1-1.9 1.3-1.9 3.3M12 17.5v.1"/></svg>',
-    profile: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>',
-    login: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>'
-};
+const NAV_CHEVRON = '<span class="nav-chevron" aria-hidden="true">▾</span>';
 
-function navItem(href, label, active, current, icon) {
-    const cls = `nav-link${active === current ? ' is-active' : ''}`;
-    return `<li><a href="${esc(url(href))}" class="${cls}">${NAV_ICONS[icon]}<span class="nav-tab-label">${esc(label)}</span></a></li>`;
+/* Tek bir menü bağlantısı. Aktif sayfa aria-current ile işaretlenir. */
+function navLink({ href, label, active, current, suffix = '', attrs = '' }) {
+    const isActive = active === current;
+    const cls = `nav-link${isActive ? ' is-active' : ''}`;
+    const currentAttr = isActive ? ' aria-current="page"' : '';
+    return `<a href="${esc(url(href))}" class="${cls}"${currentAttr}${attrs}>${esc(label)}${suffix}</a>`;
+}
+
+function navItem(opts) {
+    return `<li>${navLink(opts)}</li>`;
 }
 
 function projectsDropdown() {
@@ -63,6 +60,15 @@ function projectsDropdown() {
 }
 
 function renderHeader(current = '', user = null) {
+    const projectLink = navLink({
+        href: '/projeler',
+        label: 'Projeler',
+        suffix: NAV_CHEVRON,
+        active: current,
+        current: 'projeler',
+        attrs: ' aria-expanded="false" aria-controls="projectsDropdown"'
+    });
+
     return `
     <header class="navbar" role="banner">
         <a class="logo" href="/" aria-label="${esc(SITE.shortName)} anasayfa">
@@ -70,26 +76,17 @@ function renderHeader(current = '', user = null) {
         </a>
         <button type="button" class="nav-toggle" id="navToggle" aria-label="Menüyü aç" aria-expanded="false" aria-controls="navList">${ICONS.menu}</button>
         <nav class="nav-links" id="navList" aria-label="Birincil gezinme">
-            <svg class="nav-lens-filter" aria-hidden="true" focusable="false">
-                <filter id="nav-lens-refraction" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" x="0" y="0" width="104" height="62" color-interpolation-filters="sRGB">
-                    <feImage class="nav-lens-map" x="0" y="0" width="104" height="62" preserveAspectRatio="none" result="map"/>
-                    <feDisplacementMap in="SourceGraphic" in2="map" scale="32" xChannelSelector="R" yChannelSelector="G"/>
-                </filter>
-            </svg>
-            <span class="nav-lens" aria-hidden="true"></span>
-            <ul class="nav-links-inner" style="display:contents;list-style:none;margin:0;padding:0">
-                ${navItem('/', 'Ana sayfa', current, 'home', 'home')}
+            <ul class="nav-links-inner">
+                ${navItem({ href: '/', label: 'Ana sayfa', active: current, current: 'home' })}
                 <li class="dropdown">
-                    <a href="/projeler" class="nav-link${current === 'projeler' ? ' is-active' : ''}" aria-expanded="false" aria-controls="projectsDropdown">${NAV_ICONS.projects}<span class="nav-tab-label">Projeler</span></a>
-                    <ul class="dropdown-content" id="projectsDropdown" style="list-style:none;margin:0;padding:0">${projectsDropdown()}</ul>
+                    ${projectLink}
+                    <ul class="dropdown-content" id="projectsDropdown">${projectsDropdown()}</ul>
                 </li>
-                ${navItem('/guncellemeler', 'Güncellemeler', current, 'guncellemeler', 'updates')}
-                ${navItem('/hakkinda', 'Stüdyo', current, 'hakkinda', 'studio')}
-            ${user ? `
-            <li><a href="/profil" class="nav-link nav-profile${current === 'profil' ? ' is-active' : ''}">${NAV_ICONS.profile}<span class="nav-tab-label">Profil</span></a></li>
-            ` : `
-            <li><a href="/giris" class="nav-link nav-login">${NAV_ICONS.login}<span class="nav-tab-label">Giriş Yap</span></a></li>
-            `}
+                ${navItem({ href: '/guncellemeler', label: 'Güncellemeler', active: current, current: 'guncellemeler' })}
+                ${navItem({ href: '/hakkinda', label: 'Stüdyo', active: current, current: 'hakkinda' })}
+                ${user
+                    ? navItem({ href: '/profil', label: 'Profil', active: current, current: 'profil' })
+                    : '<li class="nav-actions"><a href="/giris" class="nav-cta">Giriş Yap</a></li>'}
             </ul>
         </nav>
     </header>`;
@@ -255,7 +252,6 @@ function renderPage({ title, description, body, current = '', user = null, og = 
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
     <link rel="stylesheet" href="${esc(asset('/css/style.css'))}">
     <link rel="stylesheet" href="${esc(asset('/css/liquid-glass.css'))}">
-    <link rel="stylesheet" href="${esc(asset('/css/nav-lens.css'))}">
     <link rel="stylesheet" href="${esc(asset('/css/mobile.css'))}">
     <script src="${esc(asset('/js/boot.js'))}"></script>
 
