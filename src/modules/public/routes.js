@@ -110,7 +110,7 @@ function viewCustomerForm(req, projectId, { error, success, values } = {}, gener
 module.exports = function (app, { generateCsrf, requireCsrf }) {
     /* ── Ana sayfa ── */
     app.get('/', (req, res) => {
-        applyCdnCache(req, res, 0, 600);
+        applyCdnCache(req, res, 0, 15);
         send(res, 200, renderPage({
             title: 'Bağımsız Yazılım ve Oyun Stüdyosu',
             description: 'Günlük hayatı kolaylaştıran masaüstü uygulamalar, sistem araçları ve oyunlar geliştiren bağımsız stüdyo.',
@@ -281,7 +281,7 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
 
     /* ── Yakında ── */
     app.get('/yakinda', (req, res) => {
-        applyCdnCache(req, res, 0, 300);
+        applyCdnCache(req, res, 0, 10);
         send(res, 200, renderPage({
             title: 'Yakında Gelecek Projeler',
             description: 'Karahan\'s Studio mutfağında hazırlanan yeni ürünler, deneysel araçlar ve erken erişim projeleri.',

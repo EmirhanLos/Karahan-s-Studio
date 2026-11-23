@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "name": "NabApp",
+    "status": "Geliştirmede",
+    "description": "NabApp kullanıcıların birbirleriyle mesajlaşmaları, birbirlerini aramaları için veya birbirlerine dosya atabildikleri ve bunları yaparken verilerini bizlerin bilmediğimiz tamamen güvenli, uçtan uca mesajlaşma uygulamasıdır.",
+    "launchDate": "2027-01-01",
+    "price": 0,
+    "image": "",
+    "featured": true,
+    "createdAt": "2026-11-23T00:51:45.144Z"
+  }
+]

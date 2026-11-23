@@ -41,6 +41,24 @@ function renderProjectCard(p) {
     </article>`;
 }
 
+function renderUpcomingFeaturedCard(u) {
+    const launchText = u.launchDate ? new Date(u.launchDate).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Çok yakında';
+    return `
+    <article class="project-card upcoming-card" data-reveal>
+        <div class="project-card-top">
+            <span class="icon-tile" aria-hidden="true">${ICONS.zap}</span>
+            <span class="badge badge--brand"><span class="status-dot status-dot--beta"></span>${esc(u.status || 'Geliştirmede')}</span>
+        </div>
+        ${u.image ? `<img class="project-card-image" src="${esc(u.image)}" alt="${esc(u.name)}" loading="lazy">` : ''}
+        <h3 class="project-card-name">${esc(u.name)}</h3>
+        <p class="project-card-desc">${esc(u.description || '')}</p>
+        <div class="project-card-foot">
+            <span class="project-price" style="font-size:0.85rem;color:var(--c-muted)"><span class="text-subtle">Hedef:</span> ${esc(launchText)}</span>
+            <a class="btn btn-primary btn-sm" href="/yakinda">İncele & Takip Et ${ICONS.arrow}</a>
+        </div>
+    </article>`;
+}
+
 function renderHome() {
     const projects = data.projects()
         .filter(p => p.status === 'Yayında' || p.status === 'Beta')
@@ -49,6 +67,9 @@ function renderHome() {
             const dateB = b.createdAt || b.date || b.updatedAt || '';
             return dateB.localeCompare(dateA);
         });
+
+    const featuredUpcoming = (data.upcoming ? data.upcoming() : [])
+        .filter(u => u && (u.featured === true || u.featured === 'true' || String(u.featured).toLowerCase() === 'true'));
 
     return `
     <section class="hero hero--studio">
@@ -87,6 +108,15 @@ function renderHome() {
             : `<div class="popular-grid latest-grid">${projects.slice(0, 5).map(renderProjectCard).join('')}</div>`}
     </section>
 
+    ${featuredUpcoming.length > 0 ? `
+    <section class="container latest-section" id="yakinda-onecikanlar" style="margin-top:var(--sp-8)">
+        <div class="section-head" data-reveal>
+            <div><p class="section-kicker">Mutfaktan haberler · Yakında</p><h2>Geliştirilmekte Olanlar</h2></div>
+            <a class="view-all" href="/yakinda">Tüm yakında projeler ${ICONS.arrow}</a>
+        </div>
+        <div class="popular-grid latest-grid">${featuredUpcoming.map(renderUpcomingFeaturedCard).join('')}</div>
+    </section>` : ''}
+
     <section class="studio-cta">
         <div class="container studio-cta-inner" data-reveal>
             <div><p class="section-kicker">Aklında bir fikir mi var?</p><h2>Birlikte hayata geçirelim.</h2></div>
@@ -95,4 +125,4 @@ function renderHome() {
     </section>`;
 }
 
-module.exports = { renderHome, renderProjectCard };
+module.exports = { renderHome, renderProjectCard, renderUpcomingFeaturedCard };

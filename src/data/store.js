@@ -116,6 +116,12 @@ function createStore(root = ROOT) {
     function write(name, data) {
         const serialized = encode(name, data);
         setStatement.run(name, serialized);
+        try {
+            const diskPath = path.join(BUNDLED_ROOT, name + '.json');
+            if (fs.existsSync(diskPath)) {
+                fs.writeFileSync(diskPath, JSON.stringify(data, null, 2), 'utf8');
+            }
+        } catch {}
         return data;
     }
 
