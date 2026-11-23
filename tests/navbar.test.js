@@ -1,8 +1,11 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 
+const ROOT = path.join(__dirname, '..');
 const { renderHeader } = require('../src/modules/public/layout');
 
 test('navbar menü ikonu ve lens katmanı içermez', () => {
@@ -41,4 +44,36 @@ test('projeler açılır listesi aria öznitelikleriyle bağlı', () => {
     const html = renderHeader('home', null);
     assert.match(html, /aria-controls="projectsDropdown"/);
     assert.match(html, /id="projectsDropdown"/);
+});
+
+test('navbar katmanlarında eski süsleme kalıntısı yok', () => {
+    const files = [
+        'public/css/style.css',
+        'public/css/liquid-glass.css',
+        'public/css/mobile.css',
+        'public/js/nav.js',
+        'src/modules/public/layout.js'
+    ];
+    for (const file of files) {
+        const content = fs.readFileSync(path.join(ROOT, file), 'utf8');
+        for (const needle of ['nav-lens', 'nav-tab-label', 'nav-icon', 'NAV_ICONS', 'nav-login']) {
+            assert.equal(content.includes(needle), false, `${file} içinde kalıntı: ${needle}`);
+        }
+    }
+});
+
+test('nav-lens.css silinmiş ve hiçbir yerden referans verilmiyor', () => {
+    assert.equal(fs.existsSync(path.join(ROOT, 'public/css/nav-lens.css')), false);
+    const layout = fs.readFileSync(path.join(ROOT, 'src/modules/public/layout.js'), 'utf8');
+    assert.equal(layout.includes('nav-lens.css'), false);
+});
+
+test('eski ikinci navbar kaldırıldı', () => {
+    const legacy = fs.readFileSync(path.join(ROOT, 'public/js/layout.js'), 'utf8');
+    for (const needle of ['renderNav', 'renderFooter', 'nav-theme-btn', 'nav-profile-dropdown']) {
+        assert.equal(legacy.includes(needle), false, `legacy layout.js içinde kalıntı: ${needle}`);
+    }
+    for (const needle of ['escapeHtml', 'asset', 'assetVersion', 'sortedProjects']) {
+        assert.ok(legacy.includes(needle), `legacy layout.js exportu kayboldu: ${needle}`);
+    }
 });
