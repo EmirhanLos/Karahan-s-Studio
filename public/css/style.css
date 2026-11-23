@@ -831,7 +831,7 @@ select.form-input {
     top: calc(100% + 12px);
     left: 50%;
     transform: translateX(-50%) translateY(8px);
-    min-width: 280px;
+    min-width: 320px;
     padding: 8px;
     background: rgba(20, 20, 24, 0.86);
     -webkit-backdrop-filter: blur(24px) saturate(1.5);
@@ -853,7 +853,8 @@ select.form-input {
     transform: translateX(-50%) translateY(0);
 }
 /* Masaüstünde hover ile açılır; mobilde dokunma ile açılır (nav.js). */
-.dropdown:hover > .dropdown-content {
+.dropdown:hover > .dropdown-content,
+.dropdown:focus-within > .dropdown-content {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) translateY(0);
@@ -862,14 +863,17 @@ select.form-input {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--sp-2);
+    gap: var(--sp-3);
     padding: 10px 12px;
     border-radius: 10px;
     color: var(--c-text);
     font-size: 0.85rem;
     font-weight: 600;
+    line-height: 1.35;
     transition: background var(--dur-1), color var(--dur-1);
 }
+.dropdown-content a > span:first-child { flex: 1 1 auto; min-width: 0; }
+.dropdown-content a > .badge { flex: none; }
 .dropdown-content a:hover { background: rgba(255, 255, 255, 0.07); color: var(--c-text); }
 .dropdown-content .badge { font-size: 0.65rem; }
 

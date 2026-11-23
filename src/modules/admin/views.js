@@ -147,7 +147,7 @@ function renderAdminAuth({ title, body }) {
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="${esc(asset('/css/style.css'))}">
     <link rel="stylesheet" href="${esc(asset('/css/admin.css'))}">
-    <link rel="stylesheet" href="${esc(asset('/css/liquid-glass.css'))}">
+
     <link rel="stylesheet" href="${esc(asset('/css/mobile.css'))}">
     <script src="${esc(asset('/js/boot.js'))}"></script>
 </head>
@@ -177,7 +177,7 @@ function renderAdminShell({ admin, csrf = '', content = '' } = {}) {
     <link rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="${esc(asset('/css/style.css'))}">
     <link rel="stylesheet" href="${esc(asset('/css/admin.css'))}">
-    <link rel="stylesheet" href="${esc(asset('/css/liquid-glass.css'))}">
+
     <link rel="stylesheet" href="${esc(asset('/css/mobile.css'))}">
     <script src="${esc(asset('/js/boot.js'))}"></script>
     <!-- Yönetici oturum verisi: çalıştırılmayan JSON veri bloğu.
