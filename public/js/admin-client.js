@@ -573,7 +573,7 @@
             delete body.fileData;
         }
         if (name === 'transactions') body.amount = Number(body.amount) || 0;
-        if (name === 'upcoming') body.featured = body.featured === 'true';
+        if (name === 'upcoming' || name === 'products') body.featured = body.featured === 'true';
         if (name === 'users' && !body.password) delete body.password;
         try {
             await api(`/admin/api/${name}${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', body });

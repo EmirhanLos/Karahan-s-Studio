@@ -1,5 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
    modules/public/home.js — Ana sayfa.
+   Admin panelindeki tüm değişikliklerle (ürünler, öne çıkarılanlar,
+   yakında projeleri, son güncellemeler) tam senkronizedir.
    ═══════════════════════════════════════════════════════════════ */
 'use strict';
 
@@ -17,19 +19,20 @@ const ICONS = {
 };
 
 function renderProjectCard(p) {
-    const price = p.isFree
+    const price = p.isFree || Number(p.price || 0) <= 0
         ? `<span class="project-price project-price--free">Ücretsiz</span>`
         : p.discount > 0
         ? `<span class="project-price">${money(p.price * (100 - p.discount) / 100)}</span>`
-        : (p.price > 0
-            ? `<span class="project-price">${money(p.price)}</span>`
-            : `<span class="project-price project-price--free">Ücretsiz</span>`);
+        : `<span class="project-price">${money(p.price)}</span>`;
 
     return `
     <article class="project-card" data-reveal>
         <div class="project-card-top">
             <span class="icon-tile" aria-hidden="true">${ICONS.layers}</span>
-            <span class="badge badge--neutral"><span class="status-dot ${p.status === 'Yayında' ? 'status-dot--live' : 'status-dot--beta'}"></span>${esc(p.status || 'Yayında')}</span>
+            <span class="badge ${p.featured ? 'badge--brand' : 'badge--neutral'}">
+                <span class="status-dot ${p.status === 'Yayında' ? 'status-dot--live' : 'status-dot--beta'}"></span>
+                ${esc(p.featured ? 'Öne Çıkan' : (p.status || 'Yayında'))}
+            </span>
         </div>
         ${p.image ? `<img class="project-card-image" src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">` : ''}
         <h3 class="project-card-name">${esc(p.name)}</h3>
@@ -42,7 +45,10 @@ function renderProjectCard(p) {
 }
 
 function renderUpcomingFeaturedCard(u) {
-    const launchText = u.launchDate ? new Date(u.launchDate).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Çok yakında';
+    const launchText = u.launchDate
+        ? new Date(u.launchDate).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' })
+        : 'Çok yakında';
+
     return `
     <article class="project-card upcoming-card" data-reveal>
         <div class="project-card-top">
@@ -60,16 +66,29 @@ function renderUpcomingFeaturedCard(u) {
 }
 
 function renderHome() {
+    // 1) Normal Ürünler: Önce admin tarafından 'featured' (Öne Çıkarılanlar), sonra en yeni tarihliler
     const projects = data.projects()
         .filter(p => p.status === 'Yayında' || p.status === 'Beta')
         .sort((a, b) => {
+            const featA = a.featured ? 1 : 0;
+            const featB = b.featured ? 1 : 0;
+            if (featB !== featA) return featB - featA;
+
             const dateA = a.createdAt || a.date || a.updatedAt || '';
             const dateB = b.createdAt || b.date || b.updatedAt || '';
             return dateB.localeCompare(dateA);
         });
 
+    // 2) Yakında Projeler: Admin panelinde 'featured: true' seçilmiş ve henüz yayınlanmamış projeler
     const featuredUpcoming = (data.upcoming ? data.upcoming() : [])
-        .filter(u => u && (u.featured === true || u.featured === 'true' || String(u.featured).toLowerCase() === 'true'));
+        .filter(u => u && (u.featured === true || u.featured === 'true' || String(u.featured).toLowerCase() === 'true'))
+        .filter(u => u.status !== 'Yayınlandı' && u.status !== 'Yayında');
+
+    // 3) En Son Güncelleme: Admin panelinden yayınlanan en güncel sürüm
+    const allUpdates = data.updates ? data.updates() : [];
+    const latestUpdate = allUpdates.length > 0
+        ? allUpdates.slice().sort((a, b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''))[0]
+        : null;
 
     return `
     <section class="hero hero--studio">
@@ -92,6 +111,19 @@ function renderHome() {
         <div class="hero-rule"><span>01</span><span>YAZILIMIN YENİ BİR YÜZÜ</span><span>↓</span></div>
     </section>
 
+    ${latestUpdate ? `
+    <div class="container" style="margin-top:-20px;margin-bottom:var(--sp-6)">
+        <a class="surface" href="/guncellemeler/${esc(latestUpdate.productId || '')}" style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-radius:12px;text-decoration:none;border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.06);transition:border-color 0.15s ease">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <span class="badge badge--brand" style="font-size:0.75rem">YENİ GÜNCELLEME</span>
+                <span style="font-weight:600;color:var(--c-text);font-size:0.9rem">${esc(latestUpdate.title)}</span>
+                ${latestUpdate.version ? `<span class="badge badge--neutral">v${esc(latestUpdate.version)}</span>` : ''}
+                <span class="text-subtle text-xs">${esc(latestUpdate.projectName || '')}</span>
+            </div>
+            <span style="color:var(--c-accent);font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:4px">Yenilikleri gör ${ICONS.arrow}</span>
+        </a>
+    </div>` : ''}
+
     <section class="studio-intro container" data-reveal>
         <p class="section-kicker">Küçük bir stüdyo, büyük bir merak</p>
         <h2>Teknolojiyi sadece çalışsın diye değil,<br><em>iyi hissettirsin</em> diye yapıyoruz.</h2>
@@ -100,16 +132,16 @@ function renderHome() {
 
     <section class="container latest-section" id="projeler">
         <div class="section-head" data-reveal>
-            <div><p class="section-kicker">Stüdyodan yeni çıkanlar</p><h2>En Son Çıkanlar</h2></div>
-            <a class="view-all" href="/projeler">Tüm projeler ${ICONS.arrow}</a>
+            <div><p class="section-kicker">Stüdyodan çıkanlar</p><h2>Projelerimiz</h2></div>
+            <a class="view-all" href="/projeler">Tüm projeler (${projects.length}) ${ICONS.arrow}</a>
         </div>
         ${projects.length === 0
             ? `<div class="projects-empty" data-reveal><span class="projects-empty-index">01 / YAKINDA</span><div><h3>Yeni projeler yolda.</h3><p>Üzerinde çalıştığımız ürünleri ve yeni sürümleri burada paylaşacağız.</p></div><a class="text-link" href="/yakinda">Yakında sayfasını gör ${ICONS.arrow}</a></div>`
-            : `<div class="popular-grid latest-grid">${projects.slice(0, 5).map(renderProjectCard).join('')}</div>`}
+            : `<div class="popular-grid latest-grid">${projects.slice(0, 6).map(renderProjectCard).join('')}</div>`}
     </section>
 
     ${featuredUpcoming.length > 0 ? `
-    <section class="container latest-section" id="yakinda-onecikanlar" style="margin-top:var(--sp-8)">
+    <section class="container latest-section" id="yakinda-onecikanlar" style="margin-top:var(--sp-10)">
         <div class="section-head" data-reveal>
             <div><p class="section-kicker">Mutfaktan haberler · Yakında</p><h2>Geliştirilmekte Olanlar</h2></div>
             <a class="view-all" href="/yakinda">Tüm yakında projeler ${ICONS.arrow}</a>
