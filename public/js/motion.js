@@ -52,7 +52,6 @@
             ticking = false;
             var y = w.pageYOffset || doc.documentElement.scrollTop || 0;
             nav.classList.toggle('is-scrolled', y > 12);
-            nav.classList.remove('is-hidden');
         };
         var onScroll = function () {
             if (!ticking) { ticking = true; raf(update); }
