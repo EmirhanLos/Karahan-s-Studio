@@ -27,6 +27,22 @@
 
 [hidden] { display: none !important; }
 
+/* Reveal ve görünürlük güvencesi: admin sayfalarında hiçbir şey gizli kalmaz */
+.admin-auth-body [data-reveal],
+.admin-body [data-reveal],
+.admin-auth-body .reveal,
+.admin-body .reveal,
+.admin-auth-body .auth-card {
+    position: relative;
+    z-index: 10;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    BÖLÜM A: GİRİŞ VE GÜVENLİK (panel-giris, 2FA, Kurulum)
    ═══════════════════════════════════════════════════════════════ */

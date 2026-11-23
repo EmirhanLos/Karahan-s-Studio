@@ -21,7 +21,7 @@ const EYE = `<svg class="icon-eye" viewBox="0 0 24 24" width="18" height="18" fi
 function renderAdminGate({ csrf = '', error = null, paths } = {}) {
     return `
     <main class="auth-shell">
-        <div class="auth-card" data-reveal>
+        <div class="auth-card">
             <div class="auth-head">
                 <span class="auth-logo">${SITE.shortName}</span>
                 <span class="auth-badge">Yönetici · Adım 1 / 2</span>
@@ -55,7 +55,7 @@ function renderAdmin2FAGate({ username, error = null, mode = 'totp', remaining =
     const isRecovery = mode === 'recovery';
     return `
     <main class="auth-shell">
-        <div class="auth-card" data-reveal>
+        <div class="auth-card">
             <div class="steps"><span class="step-dot is-done"></span><span class="step-dot is-done"></span></div>
             <span class="auth-badge">Yönetici · Adım 2 / 2</span>
             <h1>Doğrulama</h1>
@@ -88,7 +88,7 @@ function renderAdmin2FAGate({ username, error = null, mode = 'totp', remaining =
 function renderAdminSetupGate({ username, secret, uri, error = null, csrf = '', paths } = {}) {
     return `
     <main class="auth-shell">
-        <div class="auth-card auth-card--wide" data-reveal>
+        <div class="auth-card auth-card--wide">
             <div class="steps"><span class="step-dot is-done"></span><span class="step-dot is-done"></span></div>
             <span class="auth-badge">Yönetici · Güvenlik kurulumu</span>
             <h1>Authenticator kurulumu</h1>
@@ -115,7 +115,7 @@ function renderAdminSetupGate({ username, secret, uri, error = null, csrf = '', 
 function renderAdminSetupComplete({ recoveryCodes = [] } = {}) {
     return `
     <main class="auth-shell">
-        <div class="auth-card auth-card--wide" data-reveal>
+        <div class="auth-card auth-card--wide">
             <span class="auth-badge">Yönetici · Kurtarma kodları</span>
             <h1>Kurtarma kodlarınız</h1>
             <p class="auth-sub">Bu kodlar yalnızca şimdi gösterilir. Güvenli bir yerde saklayın; her biri bir kez kullanılabilir ve Authenticator'a erişemediğinizde giriş sağlar.</p>
@@ -342,7 +342,7 @@ function renderAdminDashboardHTML({ stats = {}, recent = [] } = {}) {
 function renderAdminSecurity({ admin, csrf = '', paths, recoveryLeft = 0 } = {}) {
     return `
     <main class="auth-shell">
-        <div class="auth-card auth-card--wide" data-reveal>
+        <div class="auth-card auth-card--wide">
             <span class="auth-badge">Yönetici · Güvenlik</span>
             <h1>Hesap güvenliği</h1>
             <p class="auth-sub"><strong>${esc(admin.username)}</strong> · Son giriş: ${esc(admin.lastLoginAt ? new Date(admin.lastLoginAt).toLocaleString('tr-TR') : '—')}</p>
