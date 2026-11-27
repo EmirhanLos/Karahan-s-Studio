@@ -63,7 +63,7 @@
 
     /* ── Sayfa geçişi: yüklemede açılır, iç bağlantıda kapanıp gider ── */
     function pageTransition() {
-        var overlay = doc.querySelector('.page-transition');
+        return; var overlay = doc.querySelector('.page-transition');
         if (!overlay) return;
         if (reduceMotion || smallScreen) return;
         /* Görünmez güvenlik çubuğu: geri/ileri gezintisinde çift animasyonu önler */

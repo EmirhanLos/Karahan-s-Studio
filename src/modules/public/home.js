@@ -50,7 +50,7 @@ function renderUpcomingFeaturedCard(u) {
         : 'Çok yakında';
 
     return `
-    <article class="project-card upcoming-card" data-reveal>
+    <article class="project-card project-card--upcoming" data-reveal>
         <div class="project-card-top">
             <span class="icon-tile" aria-hidden="true">${ICONS.zap}</span>
             <span class="badge badge--brand"><span class="status-dot status-dot--beta"></span>${esc(u.status || 'Geliştirmede')}</span>

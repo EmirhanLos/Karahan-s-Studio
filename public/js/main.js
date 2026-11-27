@@ -13,6 +13,9 @@
         const reviewsList = document.querySelector('.reviews-list');
         if (!message || !value || !count || !stars || !submit || !hiddenRating) return;
 
+        const hintText = document.getElementById('ratingHintText');
+        const hints = { '1': '1 ★ - Geliştirilmeli', '2': '2 ★ - Yetersiz', '3': '3 ★ - Ortalama', '4': '4 ★ - Çok İyi', '5': '5 ★ - Harika!' };
+
         /* Yıldız düğmeleri: tıklamada gizli alanı güncelle ve doluluğu göster */
         function updateStarUI(selected) {
             btns.forEach((btn, index) => {
@@ -20,6 +23,10 @@
                 btn.style.color = on ? '#facc15' : '';
                 btn.setAttribute('aria-pressed', on ? 'true' : 'false');
             });
+            if (hintText && hints[String(selected)]) {
+                hintText.textContent = hints[String(selected)];
+                hintText.style.color = '#facc15';
+            }
         }
         btns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -107,4 +114,95 @@
             }
         });
     });
+    /* ── Cookie & Privacy Banner ── */
+    function initCookieBanner() {
+        var banner = document.getElementById('cookieBanner');
+        if (!banner) return;
+
+        function getCookie(name) {
+            var m = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]*)'));
+            return m ? decodeURIComponent(m[2]) : null;
+        }
+
+        var consent = null;
+        try {
+            var raw = getCookie('ks_consent') || localStorage.getItem('ks_consent');
+            if (raw) consent = JSON.parse(raw);
+        } catch (e) {}
+
+        if (consent && consent.decision) {
+            return;
+        }
+
+        banner.style.display = 'block';
+
+        var btnAcceptAll = document.getElementById('cookieAcceptAll');
+        var btnRejectAll = document.getElementById('cookieRejectAll');
+        var btnToggleCustom = document.getElementById('cookieToggleCustom');
+        var btnSaveCustom = document.getElementById('cookieSaveCustom');
+        var customPanel = document.getElementById('cookieCustomPanel');
+        var optAnalytics = document.getElementById('cookieAnalytics');
+        var optMarketing = document.getElementById('cookieMarketing');
+
+        function saveConsent(decision, permissions) {
+            banner.style.opacity = '0';
+            banner.style.transform = 'translateY(16px)';
+            banner.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+            setTimeout(function () { banner.style.display = 'none'; }, 260);
+
+            try {
+                localStorage.setItem('ks_consent', JSON.stringify({
+                    decision: decision,
+                    permissions: permissions,
+                    at: new Date().toISOString()
+                }));
+            } catch (e) {}
+
+            fetch('/api/cookie-consent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    decision: decision,
+                    permissions: permissions
+                })
+            }).catch(function (err) {
+                console.warn('Cookie consent kaydedilemedi:', err);
+            });
+        }
+
+        if (btnAcceptAll) {
+            btnAcceptAll.addEventListener('click', function () {
+                saveConsent('all', { essential: true, analytics: true, marketing: true });
+            });
+        }
+
+        if (btnRejectAll) {
+            btnRejectAll.addEventListener('click', function () {
+                saveConsent('reject', { essential: true, analytics: false, marketing: false });
+            });
+        }
+
+        if (btnToggleCustom && customPanel) {
+            btnToggleCustom.addEventListener('click', function () {
+                var isHidden = customPanel.hidden;
+                customPanel.hidden = !isHidden;
+                btnToggleCustom.textContent = isHidden ? 'Kapat' : 'Özelleştir';
+                if (btnSaveCustom) btnSaveCustom.style.display = isHidden ? 'inline-flex' : 'none';
+            });
+        }
+
+        if (btnSaveCustom) {
+            btnSaveCustom.addEventListener('click', function () {
+                var analytics = optAnalytics ? optAnalytics.checked : false;
+                var marketing = optMarketing ? optMarketing.checked : false;
+                saveConsent('custom', { essential: true, analytics: analytics, marketing: marketing });
+            });
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCookieBanner);
+    } else {
+        initCookieBanner();
+    }
 })();

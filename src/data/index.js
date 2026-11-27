@@ -77,7 +77,10 @@ const stores = {
     cartTrackings:    () => store.read('cart-trackings', []),
     saveCartTrackings:(list) => store.write('cart-trackings', list),
     saveCartTracking: (t) => store.upsert('cart-trackings', t),
-    removeCartTracking: (id) => store.remove('cart-trackings', id)
+    removeCartTracking: (id) => store.remove('cart-trackings', id),
+    consents:         () => store.read('cookie-consents', []),
+    saveConsents:     (list) => store.write('cookie-consents', list),
+    saveConsent:      (c) => store.upsert('cookie-consents', c)
 };
 
 module.exports = { ...stores, nextId: store.nextId, _raw: store };

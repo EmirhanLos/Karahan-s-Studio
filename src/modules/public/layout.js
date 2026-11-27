@@ -148,6 +148,61 @@ function renderFooter() {
     </footer>`;
 }
 
+function renderCookieBanner() {
+    return `
+    <aside id="cookieBanner" class="cookie-banner" role="dialog" aria-modal="true" aria-label="Çerez ve Gizlilik Tercihleri" style="display:none">
+        <div class="cookie-banner-inner">
+            <div class="cookie-banner-header">
+                <span class="cookie-banner-icon" aria-hidden="true">🍪</span>
+                <h3>Çerez ve Gizlilik Tercihleriniz</h3>
+            </div>
+            <p class="cookie-banner-text">
+                Karahan's Studio olarak sitemizde temel işlevleri sunmak, güvenliği sağlamak, site performansını analiz etmek ve deneyiminizi kişiselleştirmek amacıyla çerezler kullanıyoruz. Detaylı bilgi için <a href="/gizlilik-sozlesmesi">Gizlilik Sözleşmesi</a> ve <a href="/kvkk">KVKK Aydınlatma Metni</a>'ni inceleyebilirsiniz.
+            </p>
+            
+            <div class="cookie-custom-panel" id="cookieCustomPanel" hidden>
+                <div class="cookie-option">
+                    <div class="cookie-option-info">
+                        <strong>Zorunlu Çerezler</strong>
+                        <p>Oturum yönetimi, güvenlik ve temel web sitesi fonksiyonları için gereklidir. Kapatılamaz.</p>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" checked disabled>
+                        <span class="cookie-slider"></span>
+                    </label>
+                </div>
+                <div class="cookie-option">
+                    <div class="cookie-option-info">
+                        <strong>Analitik ve İstatistik Çerezleri</strong>
+                        <p>Sayfa ziyaretlerini, popüler projeleri ve hata durumlarını anonim olarak ölçümlememize yarar.</p>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="cookieAnalytics" checked>
+                        <span class="cookie-slider"></span>
+                    </label>
+                </div>
+                <div class="cookie-option">
+                    <div class="cookie-option-info">
+                        <strong>Pazarlama ve Tercih Çerezleri</strong>
+                        <p>Size ilgi duyabileceğiniz projeleri ve duyuruları hatırlatmak için kullanılır.</p>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="cookieMarketing">
+                        <span class="cookie-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="cookie-banner-actions">
+                <button type="button" class="btn btn-primary btn-sm" id="cookieAcceptAll">Tümünü Kabul Et</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="cookieRejectAll">Reddet</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="cookieToggleCustom">Özelleştir</button>
+                <button type="button" class="btn btn-primary btn-sm" id="cookieSaveCustom" style="display:none">Tercihleri Kaydet</button>
+            </div>
+        </div>
+    </aside>`;
+}
+
 function clientScripts() {
     return `
     <script src="${esc(asset('/js/nav.js'))}" defer></script>
@@ -156,8 +211,10 @@ function clientScripts() {
     <script src="${esc(asset('/js/main.js'))}" defer></script>`;
 }
 
-function renderPage({ title, description, body, current = '', user = null, og = {}, canonical = '', noindex = false, schema = null }) {
+function renderPage({ title, description, keywords, body, current = '', user = null, og = {}, canonical = '', noindex = false, schema = null }) {
     const desc = description || SITE.description;
+    const defaultKeywords = "karahans, karahan's studio, yazılım stüdyosu, bağımsız yazılım, ankara yazılım, masaüstü uygulamaları, oyun geliştirme, sistem araçları, indie software, indie developer";
+    const kw = keywords || defaultKeywords;
     const fullTitle = title ? `${title} | ${SITE.name}` : `${SITE.name} — Bağımsız Yazılım ve Oyun Stüdyosu`;
     const origin = 'https://' + SITE.domain;
     const canonicalUrl = canonical || (current === 'home' || !current ? origin : `${origin}/${current.replace(/^\/+/, '')}`);
@@ -171,6 +228,11 @@ function renderPage({ title, description, body, current = '', user = null, og = 
             "name": SITE.name,
             "url": origin,
             "description": SITE.description,
+            "potentialAction": {
+                "@type": "SearchAction",
+                "target": `${origin}/projeler?q={search_term_string}`,
+                "query-input": "required name=search_term_string"
+            },
             "publisher": {
                 "@type": "Organization",
                 "name": SITE.name,
@@ -218,8 +280,16 @@ function renderPage({ title, description, body, current = '', user = null, og = 
     <meta name="theme-color" content="#020203">
     <meta name="robots" content="${noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'}">
     <meta name="description" content="${esc(desc)}">
+    <meta name="keywords" content="${esc(kw)}">
+    <meta name="author" content="Karahan's Studio">
+    <meta name="publisher" content="Karahan's Studio">
+    <meta name="application-name" content="Karahan's Studio">
+    <meta name="format-detection" content="telephone=no">
     <title>${esc(fullTitle)}</title>
     <link rel="canonical" href="${esc(canonicalUrl)}">
+    <link rel="alternate" hreflang="tr" href="${esc(canonicalUrl)}">
+    <link rel="alternate" hreflang="x-default" href="${esc(canonicalUrl)}">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
 
     <!-- Open Graph (Facebook / WhatsApp / LinkedIn) -->
     <meta property="og:site_name" content="${esc(SITE.name)}">
@@ -228,6 +298,9 @@ function renderPage({ title, description, body, current = '', user = null, og = 
     <meta property="og:url" content="${esc(canonicalUrl)}">
     <meta property="og:type" content="${esc(ogType)}">
     <meta property="og:image" content="${esc(ogImage)}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="${esc(fullTitle)}">
     <meta property="og:locale" content="tr_TR">
 
     <!-- Twitter Card -->
@@ -237,6 +310,7 @@ function renderPage({ title, description, body, current = '', user = null, og = 
     <meta name="twitter:title" content="${esc(fullTitle)}">
     <meta name="twitter:description" content="${esc(desc)}">
     <meta name="twitter:image" content="${esc(ogImage)}">
+    <meta name="twitter:image:alt" content="${esc(fullTitle)}">
 
     <!-- CDN & DNS Ön Hazırlık -->
     <link rel="icon" type="image/svg+xml" href="${esc(asset('/assets/favicon.svg'))}">
@@ -260,13 +334,14 @@ function renderPage({ title, description, body, current = '', user = null, og = 
 </head>
 <body class="site-shell">
     <div class="scroll-progress" aria-hidden="true"></div>
-    <div class="page-transition" aria-hidden="true"></div>
+
     <a class="skip-link" href="#main">İçeriğe atla</a>
     ${renderHeader(current, user)}
     <main id="main" tabindex="-1">
     ${body}
     </main>
     ${renderFooter()}
+    ${renderCookieBanner()}
     ${clientScripts()}
 </body>
 </html>`;

@@ -395,18 +395,111 @@ function renderLegal(kind) {
     </article>`;
 }
 
-/* ═══ 404 ═══ */
-function renderNotFound() {
+/* ═══ Hata Sayfaları (404, 403, 500, 429, 400, 503) ═══ */
+function renderErrorPage({ code = '500', badge = 'Hata', title = 'Bir sorun oluştu', lead = '', note = '', actions = [] }) {
+    const defaultActions = [
+        { label: 'Ana Sayfaya Dön', href: '/', primary: true },
+        { label: 'Projeleri Keşfet', href: '/projeler' }
+    ];
+    const finalActions = actions.length ? actions : defaultActions;
+
     return `
     <section class="notfound" data-reveal>
-        <div class="notfound-code">404</div>
-        <h1>Sayfa bulunamadı</h1>
-        <p class="lead">Aradığınız sayfa taşınmış, silinmiş ya da hiç var olmamış olabilir.</p>
-        <div class="row" style="justify-content:center;margin-top:var(--sp-5)">
-            <a class="btn btn-primary" href="/">Ana Sayfaya Dön</a>
-            <a class="btn btn-secondary" href="/projeler">Projeler</a>
+        <div class="notfound-code">${esc(String(code))}</div>
+        <div class="row" style="justify-content:center;margin-bottom:var(--sp-2)">
+            <span class="badge ${code === '404' ? 'badge--neutral' : (code === '500' || code === '503' ? 'badge--bad' : 'badge--brand')}">${esc(badge)}</span>
+        </div>
+        <h1>${esc(title)}</h1>
+        <p class="lead" style="max-width:540px;margin-inline:auto">${esc(lead)}</p>
+        ${note ? `<p class="text-subtle text-sm" style="margin-top:var(--sp-2)">${esc(note)}</p>` : ''}
+        <div class="row" style="justify-content:center;gap:var(--sp-3);margin-top:var(--sp-5);flex-wrap:wrap">
+            ${finalActions.map(a => `<a class="btn ${a.primary ? 'btn-primary' : 'btn-secondary'}" href="${esc(a.href)}">${esc(a.label)}</a>`).join('')}
         </div>
     </section>`;
+}
+
+function renderNotFound() {
+    return renderErrorPage({
+        code: '404',
+        badge: 'Sayfa Bulunamadı',
+        title: 'Aradığınız sayfa kaybolmuş olabilir',
+        lead: 'Ulaşmaya çalıştığınız sayfa taşınmış, silinmiş ya da adresi yanlış yazılmış olabilir. Aşağıdaki bağlantıları kullanarak aradığınızı bulabilirsiniz.',
+        actions: [
+            { label: 'Ana Sayfaya Dön', href: '/', primary: true },
+            { label: 'Projeler', href: '/projeler' },
+            { label: 'İletişim', href: '/iletisim' }
+        ]
+    });
+}
+
+function render500(message = '') {
+    return renderErrorPage({
+        code: '500',
+        badge: 'Sunucu Hatası',
+        title: 'Beklenmeyen bir aksaklık meydana geldi',
+        lead: 'Sunucularımız bu isteği işlerken geçici bir sorunla karşılaştı. Teknik ekibimiz durumdan haberdar edildi.',
+        note: message ? `Hata detayı: ${message}` : 'Lütfen sayfayı birkaç saniye sonra yeniden yüklemeyi deneyin.',
+        actions: [
+            { label: 'Yeniden Dene', href: 'javascript:location.reload()', primary: true },
+            { label: 'Ana Sayfaya Dön', href: '/' },
+            { label: 'Destek & İletişim', href: '/iletisim' }
+        ]
+    });
+}
+
+function render403(reason = '') {
+    return renderErrorPage({
+        code: '403',
+        badge: 'Erişim Engellendi',
+        title: 'Bu alana erişim yetkiniz bulunmuyor',
+        lead: reason || 'Görüntülemeye çalıştığınız içerik yetkilendirme gerektiriyor veya hesabınız bu işlem için sınırlandırılmış olabilir.',
+        note: 'Bir yanlışlık olduğunu düşünüyorsanız destek ekibimizle iletişime geçebilirsiniz.',
+        actions: [
+            { label: 'Ana Sayfaya Dön', href: '/', primary: true },
+            { label: 'Giriş Yap', href: '/giris' },
+            { label: 'İletişime Geç', href: '/iletisim' }
+        ]
+    });
+}
+
+function render429(retryAfter = '') {
+    return renderErrorPage({
+        code: '429',
+        badge: 'Çok Fazla İstek',
+        title: 'İstek sınırına ulaşıldı',
+        lead: 'Kısa süre içinde çok fazla istek gönderildi. Sistem güvenliğini ve sunucu performansını korumak için geçici olarak sınırlandınız.',
+        note: retryAfter ? `Lütfen ${retryAfter} sonra tekrar deneyin.` : 'Lütfen 1-2 dakika bekleyip tekrar deneyin.',
+        actions: [
+            { label: 'Yeniden Dene', href: 'javascript:location.reload()', primary: true },
+            { label: 'Ana Sayfa', href: '/' }
+        ]
+    });
+}
+
+function render400(detail = '') {
+    return renderErrorPage({
+        code: '400',
+        badge: 'Geçersiz İstek',
+        title: 'İstek doğrulanamadı',
+        lead: detail || 'Gönderilen form verisi veya güvenlik anahtarı (CSRF) geçersiz veya süresi dolmuş. Güvenliğiniz için işlem tamamlanamadı.',
+        note: 'Sayfayı yenileyip formu tekrar doldurarak deneyebilirsiniz.',
+        actions: [
+            { label: 'Geri Dön ve Tekrar Dene', href: 'javascript:history.back()', primary: true },
+            { label: 'Ana Sayfa', href: '/' }
+        ]
+    });
+}
+
+function render503() {
+    return renderErrorPage({
+        code: '503',
+        badge: 'Bakım Modu',
+        title: 'Hizmet geçici olarak kullanım dışı',
+        lead: 'Sistemlerimizde planlı bir güncelleme veya altyapı bakımı yapılıyor. En kısa sürede tekrar yayında olacağız.',
+        actions: [
+            { label: 'Durumu Kontrol Et', href: 'javascript:location.reload()', primary: true }
+        ]
+    });
 }
 
 /* ═══ Yasak ═══ */
@@ -426,5 +519,5 @@ function renderBanned(reason = '') {
 
 module.exports = {
     renderAbout, renderUpdates, renderUpdateDetail, renderUpcoming, renderContact, renderCustomerForm,
-    renderLegal, renderNotFound, renderBanned, LEGAL
+    renderLegal, renderNotFound, render500, render403, render429, render400, render503, renderErrorPage, renderBanned, LEGAL
 };

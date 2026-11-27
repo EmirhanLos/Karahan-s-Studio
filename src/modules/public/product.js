@@ -144,39 +144,106 @@ function renderProduct(product, user = null) {
         </section>` : ''}
 
         <section class="product-section" id="rating" data-reveal>
-            <h2 style="margin-bottom:var(--sp-4)">Puanla</h2>
-            <div class="rating-block surface" style="padding:var(--sp-6)">
-                <div class="stars" data-rating-stars style="font-size:1.4rem;margin-bottom:var(--sp-3)">${renderStars(product.rating || 0)}</div>
-                <p class="rating-value" data-rating-value>${(product.rating || 0).toFixed(1)} / 5</p>
-                <p class="rating-count"><span data-rating-count>${product.reviewCount || 0}</span> değerlendirme</p>
-                ${canReview ? `
-                <form method="POST" action="/api/rate/${esc(product.id)}" data-rating-form style="margin-top:var(--sp-5);display:grid;gap:var(--sp-3);max-width:340px;margin-inline:auto">
-                    <input type="hidden" name="rating" value="">
-                    <div class="form-group">
-                        <label class="form-label">Yorumunuz (isteğe bağlı)</label>
-                        <textarea name="comment" class="form-input" rows="3" placeholder="Kısa bir yorum bırakın..."></textarea>
+            <div class="section-head" style="margin-bottom:var(--sp-4)">
+                <div>
+                    <p class="section-kicker">Topluluk Değerlendirmeleri</p>
+                    <h2>Puanlar & Yorumlar</h2>
+                </div>
+            </div>
+
+            <div class="rating-dashboard surface">
+                <!-- Sol Taraf: Özet ve Dağılım Çubukları -->
+                <div class="rating-overview">
+                    <div class="rating-score-box">
+                        <span class="rating-big-score" data-rating-value>${(product.rating || 0).toFixed(1)}</span>
+                        <div class="stars rating-glow-stars" data-rating-stars>${renderStars(product.rating || 0)}</div>
+                        <p class="rating-total-count"><strong data-rating-count>${product.reviewCount || 0}</strong> değerlendirme</p>
+                        ${(product.rating || 0) >= 4 ? `<span class="badge badge--brand" style="margin-top:var(--sp-2)">★ Topluluk Önerisi</span>` : ''}
                     </div>
-                    <div class="star-buttons" role="radiogroup" aria-label="Puan verin">${[5, 4, 3, 2, 1].map(n => `<button type="button" class="star-btn" data-value="${n}" aria-label="${n} yıldız">${'★'.repeat(n)}</button>`).join('')}</div>
-                    <button type="submit" class="btn btn-primary">Gönder</button>
-                    <p class="rating-msg" data-rating-message role="status" aria-live="polite" hidden></p>
-                </form>` : `
-                <p class="text-muted">Yorum yapmak için ürünü satın almış veya indirmiş olmalısınız. <a href="/giris">Giriş yapabilirsiniz.</a></p>`}
-                ${reviews.length ? `
-                <h3 style="margin:var(--sp-5) 0 var(--sp-3)">Kullanıcı Yorumları</h3>
-                <div class="reviews-list">
-                    ${reviews.map(r => `
-                        <article class="review-item surface" style="padding:var(--sp-4)">
-                            <div class="review-item-head" style="display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-3)">
-                                <div>
-                                    <strong>${esc(r.userName)}</strong>
-                                    ${r.verified ? `<span class="badge badge--ok" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">doğrulanmış</span>` : ''}
+
+                    <div class="rating-breakdown" aria-label="Puan Dağılımı">
+                        ${[5, 4, 3, 2, 1].map(starNum => {
+                            const count = reviews.filter(r => Number(r.rating) === starNum).length;
+                            const pct = reviews.length > 0 ? Math.round((count / reviews.length) * 100) : (starNum === 5 && (product.rating || 0) >= 4.5 ? 85 : (starNum === 4 ? 15 : 0));
+                            return `
+                            <div class="rating-bar-row">
+                                <span class="rating-bar-label">${starNum} ★</span>
+                                <div class="rating-bar-track">
+                                    <div class="rating-bar-fill" style="width:${pct}%"></div>
                                 </div>
-                                <time class="text-subtle text-xs">${date(r.date)}</time>
+                                <span class="rating-bar-pct">%${pct}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <!-- Sağ Taraf: Puan Verme Formu ya da Bilgilendirme -->
+                <div class="rating-action-area">
+                    ${canReview ? `
+                    <div class="rating-form-card">
+                        <h3>Deneyiminizi Puanlayın</h3>
+                        <p class="text-subtle text-xs" style="margin-bottom:var(--sp-3)">Ürünü kullandınız; puanınız ve geri bildiriminiz diğer kullanıcılara yol gösterir.</p>
+                        <form method="POST" action="/api/rate/${esc(product.id)}" data-rating-form class="rating-interactive-form">
+                            <input type="hidden" name="rating" value="">
+                            <div class="rating-picker-box">
+                                <label class="form-label" style="font-weight:600">Puanınız:</label>
+                                <div class="star-buttons-wrapper">
+                                    <div class="star-buttons" role="radiogroup" aria-label="Puan verin">
+                                        ${[1, 2, 3, 4, 5].map(n => `<button type="button" class="star-btn" data-value="${n}" aria-label="${n} yıldız">★</button>`).join('')}
+                                    </div>
+                                    <span class="rating-hint-text" id="ratingHintText">Yıldız seçin</span>
+                                </div>
                             </div>
-                            <div class="review-item-stars" style="font-size:1.25rem;margin:var(--sp-2) 0">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
-                            ${r.comment ? `<p>${esc(r.comment)}</p>` : ''}
-                        </article>`).join('')}
-                </div>` : ''}
+                            <div class="form-group" style="margin-top:var(--sp-3)">
+                                <label class="form-label">Yorumunuz (isteğe bağlı)</label>
+                                <textarea name="comment" class="form-input" rows="3" placeholder="Ürün hakkında ne düşünüyorsunuz? Deneyiminizi paylaşın..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:var(--sp-3)">Değerlendirmeyi Gönder</button>
+                            <p class="rating-msg" data-rating-message role="status" aria-live="polite" hidden></p>
+                        </form>
+                    </div>` : `
+                    <div class="rating-gate-card">
+                        <div class="rating-gate-icon">⭐</div>
+                        <h3>Bu Ürünü Puanlayın</h3>
+                        <p class="text-subtle text-sm">Doğrulanmış değerlendirme ekosistemi için yalnızca ürünü satın alan veya kütüphanesine ekleyen kullanıcılar puan verebilir.</p>
+                        ${user
+                            ? `<p class="badge badge--neutral" style="margin-top:var(--sp-2)">Ürünü indirerek veya satın alarak değerlendirme yapabilirsiniz.</p>`
+                            : `<a href="/giris" class="btn btn-secondary btn-sm" style="margin-top:var(--sp-3)">Giriş Yaparak Değerlendir</a>`}
+                    </div>`}
+                </div>
+            </div>
+
+            <!-- Yorumlar Listesi -->
+            <div class="rating-reviews-section">
+                <div class="rating-reviews-header">
+                    <h3>Kullanıcı Yorumları (${reviews.length})</h3>
+                </div>
+                ${reviews.length ? `
+                <div class="reviews-list">
+                    ${reviews.map(r => {
+                        const initials = (r.userName || 'K').slice(0, 2).toUpperCase();
+                        return `
+                        <article class="review-item surface">
+                            <div class="review-item-head">
+                                <div class="review-user-info">
+                                    <div class="review-avatar" aria-hidden="true">${esc(initials)}</div>
+                                    <div>
+                                        <div class="review-name-row">
+                                            <strong>${esc(r.userName)}</strong>
+                                            ${r.verified ? `<span class="badge badge--ok">Doğrulanmış</span>` : ''}
+                                        </div>
+                                        <time class="text-subtle text-xs">${date(r.date)}</time>
+                                    </div>
+                                </div>
+                                <div class="review-item-stars" aria-label="${r.rating} / 5 yıldız">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                            </div>
+                            ${r.comment ? `<p class="review-comment-text">${esc(r.comment)}</p>` : ''}
+                        </article>`;
+                    }).join('')}
+                </div>` : `
+                <div class="empty-state" style="padding:var(--sp-6);margin-top:var(--sp-4)">
+                    <p class="text-subtle">Henüz kullanıcı yorumu yapılmamış. İlk değerlendiren siz olun!</p>
+                </div>`}
             </div>
         </section>
 

@@ -1,4 +1,10 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /panel-giris/
+Disallow: /api/
+Disallow: /profil/
+Disallow: /2fa/
+Disallow: /cikis
 
-Sitemap: https://karahanstudio.vercel.app/sitemap.xml
+Sitemap: https://karahans.com/sitemap.xml

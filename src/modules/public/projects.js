@@ -8,7 +8,7 @@ const data = require('../../data');
 const { renderProjectCard } = require('./home');
 
 function renderProjects(req = {}) {
-    const query = req.query || {};
+    const query = req.query || req || {};
     const q = String(query.q || '').toLowerCase().trim();
     const category = String(query.category || '');
     const free = String(query.free || '');
@@ -37,7 +37,9 @@ function renderProjects(req = {}) {
         projects = projects.filter(p => Number(p.price || 0) <= max);
     }
 
-    const categories = [...new Set(data.projects().map(p => p.category))].sort();
+    const defaultCats = ['Sistem Aracı', 'Web Uygulaması', 'Oyun', 'Masaüstü', 'Araç'];
+    const projectCats = data.projects().map(p => p.category).filter(Boolean);
+    const categories = Array.from(new Set(defaultCats.concat(projectCats))).sort();
 
     const checkedFree = free === 'true' ? ' checked' : '';
     const checkedPaid = free === 'paid' ? ' checked' : '';

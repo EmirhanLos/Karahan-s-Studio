@@ -19,7 +19,8 @@ const path = require('path');
 function send(res, status, html) { res.status(status).type('html').send(html); }
 
 function applyCdnCache(req, res, maxAge = 0, sMaxAge = 300) {
-    if (!req.session?.userId) {
+    res.setHeader('Vary', 'Cookie, Accept-Encoding');
+    if (!req.session?.userId && !req.user) {
         res.setHeader('Cache-Control', `public, max-age=${maxAge}, s-maxage=${sMaxAge}, stale-while-revalidate=600`);
     } else {
         res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate');
@@ -126,7 +127,7 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
         send(res, 200, renderPage({
             title: 'Projeler — Masaüstü Uygulamalar ve Araçlar',
             description: 'Karahan\'s Studio tarafından geliştirilen masaüstü yazılımları, sistem araçlarını ve oyunları keşfedin.',
-            body: renderProjects(req.query),
+            body: renderProjects(req),
             current: 'projeler',
             user: req.user
         }));
@@ -491,6 +492,53 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
         }
     });
 
+    /* ── API: Çerez ve Gizlilik Tercihleri ── */
+    app.post('/api/cookie-consent', (req, res) => {
+        try {
+            const body = req.body || {};
+            const decision = ['all', 'reject', 'custom'].includes(body.decision) ? body.decision : 'custom';
+            const user = req.user || (req.session?.userId ? data.userById(req.session.userId) : null);
+            const permissions = {
+                essential: true,
+                analytics: decision === 'all' ? true : (decision === 'reject' ? false : Boolean(body.permissions?.analytics)),
+                marketing: decision === 'all' ? true : (decision === 'reject' ? false : Boolean(body.permissions?.marketing))
+            };
+
+            const record = {
+                id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+                userId: user ? user.id : null,
+                userEmail: user ? user.email : null,
+                userName: user ? user.name : null,
+                ip: req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
+                userAgent: req.headers['user-agent'] || '',
+                decision,
+                permissions,
+                timestamp: new Date().toISOString()
+            };
+
+            data.saveConsent(record);
+
+            res.cookie('ks_consent', JSON.stringify({ decision, permissions, at: record.timestamp }), {
+                maxAge: 365 * 24 * 60 * 60 * 1000,
+                httpOnly: false,
+                sameSite: 'lax',
+                path: '/'
+            });
+
+            return res.json({ ok: true, record });
+        } catch (err) {
+            console.error('Çerez tercihi kaydetme hatası:', err.message);
+            return res.status(500).json({ error: 'İzin kaydedilemedi.' });
+        }
+    });
+
+    app.get('/api/cookie-consent', (req, res) => {
+        const user = req.user || (req.session?.userId ? data.userById(req.session.userId) : null);
+        if (!user) return res.json({ consents: [] });
+        const userConsents = data.consents().filter(c => c.userId === user.id || c.userEmail === user.email);
+        res.json({ ok: true, consents: userConsents });
+    });
+
     /* ── Yasal sayfalar ── */
     const legalMap = { 'kullanim-sartlari': 'kullanim', 'gizlilik-sozlesmesi': 'gizlilik', 'teslimat-iade': 'teslimat', 'mesafeli-satis': 'mesafeli', 'kvkk': 'kvkk' };
     for (const [slug, key] of Object.entries(legalMap)) {
@@ -499,6 +547,32 @@ module.exports = function (app, { generateCsrf, requireCsrf }) {
             send(res, 200, renderPage({ title: key.toUpperCase(), body: renderLegal(key), current: '', user: req.user }));
         });
     }
+
+    /* ── Hata Sayfaları Doğrudan Erişim Rotaları ── */
+    app.get('/hata/404', (req, res) => {
+        const { renderNotFound } = require('./misc');
+        send(res, 404, renderPage({ title: 'Sayfa Bulunamadı (404)', body: renderNotFound(), user: req.user, noindex: true }));
+    });
+    app.get('/hata/403', (req, res) => {
+        const { render403 } = require('./misc');
+        send(res, 403, renderPage({ title: 'Erişim Engellendi (403)', body: render403(), user: req.user, noindex: true }));
+    });
+    app.get('/hata/500', (req, res) => {
+        const { render500 } = require('./misc');
+        send(res, 500, renderPage({ title: 'Sunucu Hatası (500)', body: render500(), user: req.user, noindex: true }));
+    });
+    app.get('/hata/429', (req, res) => {
+        const { render429 } = require('./misc');
+        send(res, 429, renderPage({ title: 'Çok Fazla İstek (429)', body: render429(), user: req.user, noindex: true }));
+    });
+    app.get('/hata/400', (req, res) => {
+        const { render400 } = require('./misc');
+        send(res, 400, renderPage({ title: 'Geçersiz İstek (400)', body: render400(), user: req.user, noindex: true }));
+    });
+    app.get('/hata/503', (req, res) => {
+        const { render503 } = require('./misc');
+        send(res, 503, renderPage({ title: 'Bakım Modu (503)', body: render503(), user: req.user, noindex: true }));
+    });
 
     /* ── Site haritası (arama motorları & CDN için optimize edilmiş) ── */
     app.get('/sitemap.xml', (req, res) => {

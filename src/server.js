@@ -75,9 +75,10 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     name: config.session.cookieName,
+    proxy: true,
     rolling: config.session.rolling,
     cookie: {
-        secure: config.isProd,
+        secure: 'auto',
         httpOnly: true,
         sameSite: 'lax',
         maxAge: config.session.maxAgeMs,
@@ -120,7 +121,7 @@ app.use((req, res, next) => {
     res.locals = res.locals || {};
     res.locals.path   = req.path;
     res.locals.origin = `${req.protocol}://${req.get('host')}`;
-    res.locals.user   = (req.session?.authenticatedBy === 'firebase' || req.session?.authenticatedBy === 'google') && req.session.userId ? data.userById(req.session.userId) : null;
+    res.locals.user   = req.session?.userId ? data.userById(req.session.userId) : null;
     req.user          = res.locals.user;
     res.locals.admin  = null;
     next();
@@ -380,7 +381,15 @@ app.use((err, req, res, next) => {
     if (req.path.startsWith('/api/')) {
         return res.status(500).json({ error: 'Sunucu hatası.' });
     }
-    res.status(500).send('Sunucu hatası.');
+    const { render500 } = require('./modules/public/misc');
+    const { renderPage } = require('./modules/public/layout');
+    res.status(500).send(renderPage({
+        title: 'Sunucu Hatası (500)',
+        body: render500(),
+        current: '',
+        user: req.user,
+        noindex: true
+    }));
 });
 
 /* ═══ 404 ve yasak sayfası ═══ */
